@@ -7,7 +7,7 @@ public class Board : MonoBehaviour
 {
 
     public static Board Instance;
-    private Vector2 _boardLength = new Vector2(8, 8); // number of squares
+    private Vector2Int _boardLength = new Vector2Int(8, 8); // number of squares
     public static Square[,] Squares;
     public Square selectedSquare;
 
@@ -20,6 +20,7 @@ public class Board : MonoBehaviour
     void Start()
     {
         CreateSquares();
+        CreateCheckers();
         selectedSquare = TemplateSquare.Instance;
     }
 
@@ -65,17 +66,64 @@ public class Board : MonoBehaviour
                 // set square visuals
                 square.originalColor = count % 2 == 0 ? squareColor1 : squareColor2;
                 square.spriteRenderer.color = square.originalColor;
-                square.spriteRenderer.sortingOrder = 1;
+                square.spriteRenderer.sortingOrder = 0;
                 
                 // set square location
                 float xPosition = firstSquare.x + (x * squareSize.x);
                 float yPosition = firstSquare.y + (y * squareSize.y);
                 square.transform.localPosition = new Vector3(xPosition, yPosition, 0);
 
+                square.coordinates = new Vector2Int(x, y);
                 Squares[x, y] = square;
                 
                 count++;
                 if (count % _boardLength.x == 0) (squareColor1, squareColor2) = (squareColor2, squareColor1);
+            }
+        }
+    }
+
+    void CreateChecker(int x, int y, int team, int count, Piece templatePiece)
+    {
+        Square square = Squares[x, y];
+        
+        // create piece and set fields
+        Checker checker = new GameObject("Piece" + count).AddComponent<Checker>();
+        checker.transform.SetParent(this.transform);
+        square.occupant = checker;
+        checker.transform.position = square.transform.position;
+        checker.square = square;
+        checker.team = team;
+        checker.pieceType = 1;
+            
+        // add components to piece
+        checker.spriteRenderer = checker.AddComponent<SpriteRenderer>();
+        checker.spriteRenderer.sprite = templatePiece.spriteRenderer.sprite;
+        checker.spriteRenderer.sortingOrder = 1;
+
+        if (team == 0)
+        {
+            checker.spriteRenderer.color = Color.blue;
+        }
+    }
+
+    void CreateCheckers()
+    {
+        Checker templatePiece = TemplatePiece.Instance;
+        
+        int[] startY = {0, _boardLength.y - 3};
+        int[] endY = { 3, _boardLength.y };
+        
+        // create two teams of checkers
+        int count = 0;
+        for (int t = 0; t < 2; t++)
+        {
+            for (int y = startY[t]; y < endY[t]; y++)
+            {
+                for (int x = 0; x < _boardLength.x; x++)
+                {
+                    CreateChecker(x, y, t, count, templatePiece);
+                    count++;
+                }
             }
         }
     }
