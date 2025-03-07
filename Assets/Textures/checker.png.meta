@@ -147,7 +147,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      checkers_PNG17-3618822068_0: -332773744469899394
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
