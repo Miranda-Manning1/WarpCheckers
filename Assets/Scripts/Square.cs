@@ -31,9 +31,9 @@ public class Square : MonoBehaviour
      */
     public void Select()
     {
-        _board.selectedSquare.Deselect();
+        Board.SelectedSquare.Deselect();
         spriteRenderer.color = (originalColor + Color.yellow) / 2;
-        _board.selectedSquare = this;
+        Board.SelectedSquare = this;
         _isSelected = true;
         GameManager.ClickedOnSquare = true;
     }
@@ -52,12 +52,30 @@ public class Square : MonoBehaviour
      */
     private void OnMouseUp()
     {
-        bool isValidMove = false;
-        // when clicking a square, attempt to move the previously selected square's piece to here
-        if (_board.selectedSquare != null && _board.selectedSquare._occupant != null)
-            isValidMove = _board.selectedSquare._occupant.AttemptMove(_board.selectedSquare, this);
+        // clicking on piece of non-current-player does nothing
+        if (this.IsOccupied() && this.GetPiece().team != GameManager.CurrentPlayerTurn()) return;
         
-        Select();
+        // clicking on an empty square when no piece is selected does nothing
+        if (!Board.PieceSelected() && !this.IsOccupied()) return;
+        
+        bool isValidMove = false;
+        
+        // when clicking a square, attempt to move the previously selected square's piece to here
+        if (Board.PieceSelected())
+            isValidMove = Board.SelectedSquare.GetPiece().AttemptMove(Board.SelectedSquare, this);
+
+        if (isValidMove)
+        {
+            Board.SelectedSquare.Deselect();
+            GameManager.ClickedOnSquare = true;
+            GameManager.SwitchPlayerTurn();
+            return;
+        }
+        
+        // if no move done, just select a square
+        Board.SelectedSquare.Deselect();
+        if (this.IsOccupied())
+            Select();
     }
 
     public void SetPiece(Piece piece)

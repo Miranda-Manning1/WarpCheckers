@@ -10,6 +10,8 @@ public class GameManager : MonoBehaviour
     
     public static bool ClickedOnSquare = false;
 
+    private static int _playerTurn = 0;
+
     private void Awake()
     {
         Instance = this;
@@ -25,5 +27,26 @@ public class GameManager : MonoBehaviour
     void Update()
     {
         
+    }
+
+    /*
+     * Switch the turn from one player's to the other's
+     */
+    public static void SwitchPlayerTurn()
+    {
+        _playerTurn = _playerTurn switch
+        {
+            0 => 1,
+            1 => 0,
+            _ => _playerTurn
+        };
+    }
+
+    /*
+     * Get the current player whose turn it is
+     */
+    public static int CurrentPlayerTurn()
+    {
+        return _playerTurn;
     }
 }

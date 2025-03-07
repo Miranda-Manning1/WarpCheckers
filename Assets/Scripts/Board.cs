@@ -9,7 +9,7 @@ public class Board : MonoBehaviour
     public static Board Instance;
     private Vector2Int _boardLength = new Vector2Int(8, 8); // number of squares
     public static Square[,] Squares;
-    public Square selectedSquare;
+    public static Square SelectedSquare;
 
     private void Awake()
     {
@@ -21,7 +21,7 @@ public class Board : MonoBehaviour
     {
         CreateSquares();
         CreateCheckers();
-        selectedSquare = TemplateSquare.Instance;
+        SelectedSquare = TemplateSquare.Instance;
     }
 
     // Update is called once per frame
@@ -102,7 +102,7 @@ public class Board : MonoBehaviour
 
         if (team == 0)
         {
-            checker.spriteRenderer.color = Color.blue;
+            checker.spriteRenderer.color = Color.cyan;
         }
     }
 
@@ -126,5 +126,13 @@ public class Board : MonoBehaviour
                 }
             }
         }
+    }
+
+    /*
+     * Returns whether there is a piece on the selected square
+     */
+    public static bool PieceSelected()
+    {
+        return Board.SelectedSquare != null && Board.SelectedSquare.GetPiece() != null;
     }
 }

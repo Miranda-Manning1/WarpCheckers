@@ -23,10 +23,10 @@ public abstract class Piece : MonoBehaviour
         
     }
 
-    public void SetSquare(Square square)
+    public void SetSquare(Square squareToSet)
     {
         this.square.SetPiece(null);
-        this.square = square;
+        this.square = squareToSet;
         this.transform.position = square.transform.position;
         square.SetPiece(this);
     }

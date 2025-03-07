@@ -33,7 +33,8 @@ public class Checker : Piece
         }
         
         // capture an opponent's piece
-        AttemptCapture(originalSquare, destinationSquare);
+        bool isCaptureValid = AttemptCapture(originalSquare, destinationSquare);
+        if (isCaptureValid) return true;
         
         return false;
     }

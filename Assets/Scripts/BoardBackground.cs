@@ -3,23 +3,11 @@ using UnityEngine;
 
 public class BoardBackground : MonoBehaviour
 {
-    private Board _board;
-
-    private void Start()
-    {
-        _board = Board.Instance;
-    }
-
-    private void OnMouseUp()
-    {
-        _board.selectedSquare.Deselect();
-    }
-
     private void LateUpdate()
     {
-        if (Input.GetMouseButtonUp(0) && !GameManager.ClickedOnSquare)
+        if (Input.GetMouseButtonUp(0) && !GameManager.ClickedOnSquare && Board.SelectedSquare != null)
         {
-            _board.selectedSquare.Deselect();
+            Board.SelectedSquare.Deselect();
         }
 
         GameManager.ClickedOnSquare = false;
