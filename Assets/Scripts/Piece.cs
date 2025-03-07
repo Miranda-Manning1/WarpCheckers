@@ -2,13 +2,11 @@ using UnityEngine;
 
 public abstract class Piece : MonoBehaviour
 {
-
-    private GameManager _gameManager;
     private Board _board;
     
     public Square square;
-    
-    public int team = 0;
+
+    public int team;
     public int pieceType = 1;
     
     public SpriteRenderer spriteRenderer;
@@ -16,7 +14,6 @@ public abstract class Piece : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        _gameManager = GameManager.Instance;
         _board = Board.Instance;
     }
 
@@ -28,10 +25,10 @@ public abstract class Piece : MonoBehaviour
 
     public void SetSquare(Square square)
     {
-        this.square.occupant = null;
+        this.square.SetPiece(null);
         this.square = square;
         this.transform.position = square.transform.position;
-        square.occupant = this;
+        square.SetPiece(this);
     }
 
     /*
@@ -46,4 +43,9 @@ public abstract class Piece : MonoBehaviour
      * Attempts to move from one given board location to another
      */
     public abstract bool AttemptMove(Square originalSquare, Square destinationSquare);
+    
+    public static void CapturePiece(Piece piece)
+    {
+        Destroy(piece.gameObject);
+    }
 }

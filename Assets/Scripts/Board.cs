@@ -89,7 +89,7 @@ public class Board : MonoBehaviour
         // create piece and set fields
         Checker checker = new GameObject("Piece" + count).AddComponent<Checker>();
         checker.transform.SetParent(this.transform);
-        square.occupant = checker;
+        square.SetPiece(checker);
         checker.transform.position = square.transform.position;
         checker.square = square;
         checker.team = team;

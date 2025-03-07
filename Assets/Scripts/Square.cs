@@ -8,7 +8,7 @@ public class Square : MonoBehaviour
     public BoxCollider2D squareCollider;
     
     private Board _board;
-    public Piece occupant;
+    private Piece _occupant;
     public Color originalColor;
     public Vector2Int coordinates;
 
@@ -54,24 +54,50 @@ public class Square : MonoBehaviour
     {
         bool isValidMove = false;
         // when clicking a square, attempt to move the previously selected square's piece to here
-        if (_board.selectedSquare != null && _board.selectedSquare.occupant != null)
-            isValidMove = _board.selectedSquare.occupant.AttemptMove(_board.selectedSquare, this);
+        if (_board.selectedSquare != null && _board.selectedSquare._occupant != null)
+            isValidMove = _board.selectedSquare._occupant.AttemptMove(_board.selectedSquare, this);
         
         Select();
     }
 
+    public void SetPiece(Piece piece)
+    {
+        _occupant = piece;
+    }
+
+    /*
+     * is there a piece on this Square
+     */
+    public bool IsOccupied()
+    {
+        return this._occupant != null;
+    }
+
+    /*
+     * Gets this Square's piece
+     */
+    public Piece GetPiece()
+    {
+        return _occupant;
+    }
+
     public static bool IsDirectlyDiagonal(Square originalSquare, Square destinationSquare)
+    {
+        return IsDiagonal(originalSquare, destinationSquare, 1);
+    }
+
+    public static bool IsDiagonal(Square originalSquare, Square destinationSquare, int spacesApart)
     {
 
         // look in both x and y directions
         for (int i = 0; i < 2; i++)
         {
             // check in front of and behind
-            if ((originalSquare.coordinates[i] + 1) % 8 == destinationSquare.coordinates[i]
-                || (originalSquare.coordinates[i] + 7) % 8 == destinationSquare.coordinates[i])
+            if ((originalSquare.coordinates[i] + spacesApart) % 8 == destinationSquare.coordinates[i]
+                || (originalSquare.coordinates[i] - spacesApart + 8) % 8 == destinationSquare.coordinates[i])
                 continue;
 
-            // squares aren't directly diagonal
+            // squares aren't diagonal spacesApart spaces apart
             return false;
         }
 
@@ -92,12 +118,12 @@ public class Square : MonoBehaviour
             // check in front of
             if ((originalSquare.coordinates[i] + 2) % 8 == destinationSquare.coordinates[i])
             {
-                betweenSquareCoordinates[i] = (originalSquare.coordinates[i] + 1) / 8;
+                betweenSquareCoordinates[i] = (originalSquare.coordinates[i] + 1) % 8;
             }
             // check behind
-            else if ((originalSquare.coordinates[i] - 2) % 8 == destinationSquare.coordinates[i])
+            else if ((originalSquare.coordinates[i] - 2 + 8) % 8 == destinationSquare.coordinates[i])
             {
-                betweenSquareCoordinates[i] = (originalSquare.coordinates[i] - 1) / 8;
+                betweenSquareCoordinates[i] = (originalSquare.coordinates[i] - 1 + 8) % 8;
             }
             // squares aren't two apart on the diagonal
             else
