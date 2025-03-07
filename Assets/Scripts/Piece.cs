@@ -48,4 +48,29 @@ public abstract class Piece : MonoBehaviour
     {
         Destroy(piece.gameObject);
     }
+    
+    /*
+     * Some checker types can only move forwards
+     */
+    public static bool FollowsDirectionRule(Piece piece, Square originalSquare, Square destinationSquare)
+    {
+        
+        // normal forward
+        if (piece.team == 0 && destinationSquare.coordinates.y > originalSquare.coordinates.y)
+            return true;
+        
+        // warp forward
+        if (piece.team == 0 && originalSquare.coordinates.y - destinationSquare.coordinates.y >= (Board.BoardLength.y - 2))
+            return true;
+        
+        // normal backward
+        if (piece.team == 1 && destinationSquare.coordinates.y < originalSquare.coordinates.y)
+            return true;
+        
+        // warp backward
+        if (piece.team == 1 && destinationSquare.coordinates.y - originalSquare.coordinates.y >= (Board.BoardLength.y - 2))
+            return true;
+
+        return false;
+    }
 }

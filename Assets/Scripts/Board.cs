@@ -7,7 +7,7 @@ public class Board : MonoBehaviour
 {
 
     public static Board Instance;
-    private Vector2Int _boardLength = new Vector2Int(8, 8); // number of squares
+    public static Vector2Int BoardLength = new Vector2Int(8, 8); // number of squares
     public static Square[,] Squares;
     public static Square SelectedSquare;
 
@@ -36,22 +36,22 @@ public class Board : MonoBehaviour
         Color squareColor2 = Color.white;
         
         // initialize list of squares
-        Squares = new Square[(int)_boardLength.x, (int)_boardLength.y];
+        Squares = new Square[BoardLength.x, BoardLength.y];
         
         // grab the template square
         Square templateSquare = TemplateSquare.Instance;
         
         // prime the size/location of the initial square
         Vector2 squareSize = new Vector2(Screen.width / (1120 / 2f), Screen.height / (510 / 2f));
-        float firstSquareX = transform.position.x - ((_boardLength.x / 2) * squareSize.x) + (squareSize.x / 2);
-        float firstSquareY = transform.position.y - ((_boardLength.y / 2) * squareSize.y) + (squareSize.y / 2);
+        float firstSquareX = transform.position.x - ((BoardLength.x / 2f) * squareSize.x) + (squareSize.x / 2);
+        float firstSquareY = transform.position.y - ((BoardLength.y / 2f) * squareSize.y) + (squareSize.y / 2);
         Vector2 firstSquare = new Vector2(firstSquareX, firstSquareY);
         
         // create the grid of squares
         int count = 0;
-        for (int y = 0; y < _boardLength.y; y++)
+        for (int y = 0; y < BoardLength.y; y++)
         {
-            for (int x = 0; x < _boardLength.x; x++)
+            for (int x = 0; x < BoardLength.x; x++)
             {
                 // create square and set sprite based on template square's sprite
                 Square square = new GameObject("Square" + count).AddComponent<Square>();
@@ -77,7 +77,7 @@ public class Board : MonoBehaviour
                 Squares[x, y] = square;
                 
                 count++;
-                if (count % _boardLength.x == 0) (squareColor1, squareColor2) = (squareColor2, squareColor1);
+                if (count % BoardLength.x == 0) (squareColor1, squareColor2) = (squareColor2, squareColor1);
             }
         }
     }
@@ -110,8 +110,8 @@ public class Board : MonoBehaviour
     {
         Checker templatePiece = TemplatePiece.Instance;
         
-        int[] startY = {0, _boardLength.y - 3};
-        int[] endY = { 3, _boardLength.y };
+        int[] startY = {0, BoardLength.y - 3};
+        int[] endY = { 3, BoardLength.y };
         
         // create two teams of checkers
         int count = 0;
@@ -119,7 +119,7 @@ public class Board : MonoBehaviour
         {
             for (int y = startY[t]; y < endY[t]; y++)
             {
-                for (int x = 0; x < _boardLength.x; x++)
+                for (int x = 0; x < BoardLength.x; x++)
                 {
                     CreateChecker(x, y, t, count, templatePiece);
                     count++;

@@ -26,7 +26,7 @@ public class Checker : Piece
         }
         
         // basic movement
-        if (Square.IsDirectlyDiagonal(originalSquare, destinationSquare))
+        if (Square.IsDirectlyDiagonal(originalSquare, destinationSquare) && FollowsDirectionRule(this, originalSquare, destinationSquare))
         {
             SetSquare(destinationSquare);
             return true;
@@ -39,8 +39,11 @@ public class Checker : Piece
         return false;
     }
 
-    public bool AttemptCapture(Square originalSquare, Square destinationSquare)
+    private bool AttemptCapture(Square originalSquare, Square destinationSquare)
     {
+        // can only move forwards
+        if (!FollowsDirectionRule(this, originalSquare, destinationSquare)) return false;
+        
         // can't move onto an existing piece
         if (destinationSquare.IsOccupied()) return false;
         
