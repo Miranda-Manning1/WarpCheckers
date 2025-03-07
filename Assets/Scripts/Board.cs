@@ -27,26 +27,26 @@ public class Board : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+
     }
 
     void CreateSquares()
     {
         Color squareColor1 = Color.black;
         Color squareColor2 = Color.white;
-        
+
         // initialize list of squares
         Squares = new Square[BoardLength.x, BoardLength.y];
-        
+
         // grab the template square
         Square templateSquare = TemplateSquare.Instance;
-        
+
         // prime the size/location of the initial square
         Vector2 squareSize = new Vector2(Screen.width / (1120 / 2f), Screen.height / (510 / 2f));
         float firstSquareX = transform.position.x - ((BoardLength.x / 2f) * squareSize.x) + (squareSize.x / 2);
         float firstSquareY = transform.position.y - ((BoardLength.y / 2f) * squareSize.y) + (squareSize.y / 2);
         Vector2 firstSquare = new Vector2(firstSquareX, firstSquareY);
-        
+
         // create the grid of squares
         int count = 0;
         for (int y = 0; y < BoardLength.y; y++)
@@ -56,7 +56,7 @@ public class Board : MonoBehaviour
                 // create square and set sprite based on template square's sprite
                 Square square = new GameObject("Square" + count).AddComponent<Square>();
                 square.transform.SetParent(this.transform);
-                
+
                 // add components to square
                 square.spriteRenderer = square.AddComponent<SpriteRenderer>();
                 square.spriteRenderer.sprite = templateSquare.spriteRenderer.sprite;
@@ -67,7 +67,7 @@ public class Board : MonoBehaviour
                 square.originalColor = count % 2 == 0 ? squareColor1 : squareColor2;
                 square.spriteRenderer.color = square.originalColor;
                 square.spriteRenderer.sortingOrder = 0;
-                
+
                 // set square location
                 float xPosition = firstSquare.x + (x * squareSize.x);
                 float yPosition = firstSquare.y + (y * squareSize.y);
@@ -75,7 +75,7 @@ public class Board : MonoBehaviour
 
                 square.coordinates = new Vector2Int(x, y);
                 Squares[x, y] = square;
-                
+
                 count++;
                 if (count % BoardLength.x == 0) (squareColor1, squareColor2) = (squareColor2, squareColor1);
             }
@@ -85,7 +85,7 @@ public class Board : MonoBehaviour
     void CreateChecker(int x, int y, int team, int count, Piece templatePiece)
     {
         Square square = Squares[x, y];
-        
+
         // create piece and set fields
         Checker checker = new GameObject("Piece" + count).AddComponent<Checker>();
         checker.transform.SetParent(this.transform);
@@ -94,7 +94,7 @@ public class Board : MonoBehaviour
         checker.square = square;
         checker.team = team;
         checker.pieceType = 1;
-            
+
         // add components to piece
         checker.spriteRenderer = checker.AddComponent<SpriteRenderer>();
         checker.spriteRenderer.sprite = templatePiece.spriteRenderer.sprite;
@@ -109,10 +109,10 @@ public class Board : MonoBehaviour
     void CreateCheckers()
     {
         Checker templatePiece = TemplatePiece.Instance;
-        
-        int[] startY = {0, BoardLength.y - 3};
+
+        int[] startY = { 0, BoardLength.y - 3 };
         int[] endY = { 3, BoardLength.y };
-        
+
         // create two teams of checkers
         int count = 0;
         for (int t = 0; t < 2; t++)
@@ -134,5 +134,32 @@ public class Board : MonoBehaviour
     public static bool PieceSelected()
     {
         return Board.SelectedSquare != null && Board.SelectedSquare.GetPiece() != null;
+    }
+
+    public static void FlipBoard()
+    {
+        for (int x = 0; x < BoardLength.y; x++)
+        {
+            for (int y = 0; y < BoardLength.x; y++)
+            {
+                Square square = Squares[x, y];
+
+                // flip transform position
+                square.transform.localPosition = new Vector3(
+                    square.transform.localPosition.x * -1,
+                    square.transform.localPosition.y * -1, 1);
+
+                // flip coordinates
+                square.coordinates = new Vector2Int((
+                        Board.BoardLength.x - 1) - square.coordinates.x,
+                    (Board.BoardLength.y - 1) - square.coordinates.y);
+
+                // reset piece position to square
+                if (square.IsOccupied())
+                {
+                    square.GetPiece().transform.position = square.transform.position;
+                }
+            }
+        }
     }
 }

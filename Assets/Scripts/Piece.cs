@@ -54,21 +54,29 @@ public abstract class Piece : MonoBehaviour
      */
     public static bool FollowsDirectionRule(Piece piece, Square originalSquare, Square destinationSquare)
     {
+        int forwardTeam = 0;
+        int backwardTeam = 1;
+
+        if (GameManager.IsBoardFlipped())
+        {
+            forwardTeam = 1;
+            backwardTeam = 0;
+        }
         
         // normal forward
-        if (piece.team == 0 && destinationSquare.coordinates.y > originalSquare.coordinates.y)
+        if (piece.team == forwardTeam && destinationSquare.coordinates.y > originalSquare.coordinates.y)
             return true;
         
         // warp forward
-        if (piece.team == 0 && originalSquare.coordinates.y - destinationSquare.coordinates.y >= (Board.BoardLength.y - 2))
+        if (piece.team == forwardTeam && originalSquare.coordinates.y - destinationSquare.coordinates.y >= (Board.BoardLength.y - 2))
             return true;
         
         // normal backward
-        if (piece.team == 1 && destinationSquare.coordinates.y < originalSquare.coordinates.y)
+        if (piece.team == backwardTeam && destinationSquare.coordinates.y < originalSquare.coordinates.y)
             return true;
         
         // warp backward
-        if (piece.team == 1 && destinationSquare.coordinates.y - originalSquare.coordinates.y >= (Board.BoardLength.y - 2))
+        if (piece.team == backwardTeam && destinationSquare.coordinates.y - originalSquare.coordinates.y >= (Board.BoardLength.y - 2))
             return true;
 
         return false;

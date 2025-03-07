@@ -1,5 +1,6 @@
 using System;
 using NUnit.Framework.Constraints;
+using Unity.VisualScripting.Dependencies.NCalc;
 using UnityEngine;
 
 public class Square : MonoBehaviour
@@ -152,6 +153,12 @@ public class Square : MonoBehaviour
             }
         }
 
-        return Board.Squares[betweenSquareCoordinates.x, betweenSquareCoordinates.y];
+        /*
+         * return the coords of the between square.
+         * if the board is flipped, mirror the coordinates to ensure the correct square is returned
+         */
+        return GameManager.IsBoardFlipped() ?
+            Board.Squares[(Board.BoardLength.x - 1) - betweenSquareCoordinates.x, (Board.BoardLength.y - 1) - betweenSquareCoordinates.y]
+            : Board.Squares[betweenSquareCoordinates.x, betweenSquareCoordinates.y];
     }
 }

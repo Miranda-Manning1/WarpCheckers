@@ -40,6 +40,8 @@ public class GameManager : MonoBehaviour
             1 => 0,
             _ => _playerTurn
         };
+        
+        Board.FlipBoard();
     }
 
     /*
@@ -48,5 +50,13 @@ public class GameManager : MonoBehaviour
     public static int CurrentPlayerTurn()
     {
         return _playerTurn;
+    }
+    
+    /*
+     * Check if the board is flipped. It should always be flipped if it's team 1's turn
+     */
+    public static bool IsBoardFlipped()
+    {
+        return _playerTurn == 1;
     }
 }
