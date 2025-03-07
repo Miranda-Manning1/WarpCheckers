@@ -9,6 +9,7 @@ public class Board : MonoBehaviour
     public static Board Instance;
     private Vector2 _boardLength = new Vector2(8, 8); // number of squares
     public static Square[,] Squares;
+    public Square selectedSquare;
 
     private void Awake()
     {
@@ -19,6 +20,7 @@ public class Board : MonoBehaviour
     void Start()
     {
         CreateSquares();
+        selectedSquare = TemplateSquare.Instance;
     }
 
     // Update is called once per frame
@@ -29,8 +31,8 @@ public class Board : MonoBehaviour
 
     void CreateSquares()
     {
-        Color squareColor1 = Color.white;
-        Color squareColor2 = Color.black;
+        Color squareColor1 = Color.black;
+        Color squareColor2 = Color.white;
         
         // initialize list of squares
         Squares = new Square[(int)_boardLength.x, (int)_boardLength.y];
@@ -39,7 +41,7 @@ public class Board : MonoBehaviour
         Square templateSquare = TemplateSquare.Instance;
         
         // prime the size/location of the initial square
-        Vector2 squareSize = new Vector2(1120 / (1120 / 2f), 510 / (510 / 2f));
+        Vector2 squareSize = new Vector2(Screen.width / (1120 / 2f), Screen.height / (510 / 2f));
         float firstSquareX = transform.position.x - ((_boardLength.x / 2) * squareSize.x) + (squareSize.x / 2);
         float firstSquareY = transform.position.y - ((_boardLength.y / 2) * squareSize.y) + (squareSize.y / 2);
         Vector2 firstSquare = new Vector2(firstSquareX, firstSquareY);
@@ -50,22 +52,25 @@ public class Board : MonoBehaviour
         {
             for (int x = 0; x < _boardLength.x; x++)
             {
-                
                 // create square and set sprite based on template square's sprite
                 Square square = new GameObject("Square" + count).AddComponent<Square>();
                 square.transform.SetParent(this.transform);
-                SpriteRenderer spriteRenderer = square.AddComponent<SpriteRenderer>();
-                spriteRenderer.sprite = templateSquare.GetComponent<SpriteRenderer>().sprite;
+                
+                // add components to square
+                square.spriteRenderer = square.AddComponent<SpriteRenderer>();
+                square.spriteRenderer.sprite = templateSquare.spriteRenderer.sprite;
+                square.squareCollider = square.AddComponent<BoxCollider2D>();
+                square.squareCollider.layerOverridePriority = 1;
 
                 // set square visuals
-                spriteRenderer.color = count % 2 == 0 ? squareColor1 : squareColor2;
-                spriteRenderer.sortingOrder = 0;
+                square.originalColor = count % 2 == 0 ? squareColor1 : squareColor2;
+                square.spriteRenderer.color = square.originalColor;
+                square.spriteRenderer.sortingOrder = 1;
                 
                 // set square location
                 float xPosition = firstSquare.x + (x * squareSize.x);
                 float yPosition = firstSquare.y + (y * squareSize.y);
                 square.transform.localPosition = new Vector3(xPosition, yPosition, 0);
-                square.transform.localScale = new Vector3(Screen.width / (1120 / 0.18f), Screen.height / (510 / 0.18f), 1);
 
                 Squares[x, y] = square;
                 

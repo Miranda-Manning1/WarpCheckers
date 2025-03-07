@@ -6,6 +6,8 @@ public class GameManager : MonoBehaviour
     
     public static GameManager Instance;
     public Board board;
+    
+    public static bool ClickedOnSquare = false;
 
     private void Awake()
     {
