@@ -11,7 +11,11 @@ public class GameManager : MonoBehaviour
     public static bool ClickedOnSquare = false;
 
     private static int _playerTurn = 0;
+    private static bool _boardFlipped = false;
+    private static bool _chainCaptureRunning = false;
 
+    public const bool DeveloperMode = true;
+    
     private void Awake()
     {
         Instance = this;
@@ -40,7 +44,11 @@ public class GameManager : MonoBehaviour
             1 => 0,
             _ => _playerTurn
         };
+
+        // don't flip the board if spacebar is held in dev mode
+        if (Input.GetKey(KeyCode.Space) && DeveloperMode) return;
         
+        _boardFlipped = !_boardFlipped;
         Board.FlipBoard();
     }
 
@@ -57,6 +65,20 @@ public class GameManager : MonoBehaviour
      */
     public static bool IsBoardFlipped()
     {
-        return _playerTurn == 1;
+        return _boardFlipped;
+    }
+    
+    /*
+     * Returns whether there is a chain capture currently running.
+     * For use in Square.OnMouseUp() to ensure the piece isn't deselected
+     */
+    public static bool ChainCaptureRunning()
+    {
+        return _chainCaptureRunning;
+    }
+    
+    public static void SetChainCaptureRunning(bool isRunning)
+    {
+        _chainCaptureRunning = isRunning;
     }
 }

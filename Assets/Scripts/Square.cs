@@ -36,7 +36,6 @@ public class Square : MonoBehaviour
         spriteRenderer.color = (originalColor + Color.yellow) / 2;
         Board.SelectedSquare = this;
         _isSelected = true;
-        GameManager.ClickedOnSquare = true;
     }
 
     /*
@@ -48,11 +47,21 @@ public class Square : MonoBehaviour
         spriteRenderer.color = originalColor;
     }
 
+    private void OnMouseOver()
+    {
+        if (Input.GetMouseButtonUp(1) && GameManager.DeveloperMode)
+        {
+            Destroy(this.GetPiece().gameObject);
+        }
+    }
+
     /*
-     * Selects a square when clicked
+     * Selects a square when clicked, and handles piece movement
      */
     private void OnMouseUp()
     {
+        GameManager.ClickedOnSquare = true;
+        
         // clicking on piece of non-current-player does nothing
         if (this.IsOccupied() && this.GetPiece().team != GameManager.CurrentPlayerTurn()) return;
         
@@ -60,10 +69,14 @@ public class Square : MonoBehaviour
         if (!Board.PieceSelected() && !this.IsOccupied()) return;
         
         bool isValidMove = false;
+        Piece currentPiece = null;
         
         // when clicking a square, attempt to move the previously selected square's piece to here
         if (Board.PieceSelected())
-            isValidMove = Board.SelectedSquare.GetPiece().AttemptMove(Board.SelectedSquare, this);
+        {
+            currentPiece = Board.SelectedSquare.GetPiece();
+            isValidMove = currentPiece!.AttemptMove(Board.SelectedSquare, this);
+        }
 
         if (isValidMove)
         {
@@ -72,9 +85,11 @@ public class Square : MonoBehaviour
             GameManager.SwitchPlayerTurn();
             return;
         }
+
+        // if a chain capture is currently running, go to next frame
+        if (currentPiece != null && GameManager.ChainCaptureRunning()) return;
         
         // if no move done, just select a square
-        Board.SelectedSquare.Deselect();
         if (this.IsOccupied())
             Select();
     }
@@ -157,8 +172,44 @@ public class Square : MonoBehaviour
          * return the coords of the between square.
          * if the board is flipped, mirror the coordinates to ensure the correct square is returned
          */
+        return GetSquareFromCoordinates(betweenSquareCoordinates.x, betweenSquareCoordinates.y);
+    }
+
+    /*
+     * returns the piece that is between two squares 2 apart on the diagonal
+     */
+    public static Piece PieceBetween(Square originalSquare, Square destinationSquare)
+    {
+        Square squareBetween = Square.SquareBetween(originalSquare, destinationSquare);
+        Piece capturePiece = squareBetween.GetPiece();
+        
+        return capturePiece;
+    }
+
+    /*
+     * return a Square based on a set of coordinates, accounting for whether the board is flipped
+     */
+    public static Square GetSquareFromCoordinates(int x, int y)
+    {
         return GameManager.IsBoardFlipped() ?
-            Board.Squares[(Board.BoardLength.x - 1) - betweenSquareCoordinates.x, (Board.BoardLength.y - 1) - betweenSquareCoordinates.y]
-            : Board.Squares[betweenSquareCoordinates.x, betweenSquareCoordinates.y];
+            Board.Squares[(Board.BoardLength.x - 1) - x, (Board.BoardLength.y - 1) - y]
+            : Board.Squares[x, y];
+    }
+
+    /*
+     * returns a Square based on relative coordinates of a given square.
+     * given relative coordinates may be negative
+     */
+    public static Square GetRelativeSquare(Square originalSquare, int x, int y)
+    {
+        /*
+         * calculate absolute coordinates of square
+         * + 8 is used to accomodate negative relative coordinates
+         */
+        Vector2Int absoluteCoordinates = new Vector2Int((
+            originalSquare.coordinates.x + x + 8) % 8,
+            (originalSquare.coordinates.y + y + 8) % 8);
+
+        return Square.GetSquareFromCoordinates(absoluteCoordinates.x, absoluteCoordinates.y);
     }
 }

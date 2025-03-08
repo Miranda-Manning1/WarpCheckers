@@ -11,6 +11,9 @@ public abstract class Piece : MonoBehaviour
     
     public SpriteRenderer spriteRenderer;
     
+    private bool _chainCaptureRunning = false;
+    private bool _chainCaptureSuccessful = false;
+    
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -46,6 +49,7 @@ public abstract class Piece : MonoBehaviour
     
     public static void CapturePiece(Piece piece)
     {
+        piece.square.SetPiece(null); // Destroy() marks gameobjects for destruction, which then only happens at the end of the frame
         Destroy(piece.gameObject);
     }
     
@@ -80,5 +84,15 @@ public abstract class Piece : MonoBehaviour
             return true;
 
         return false;
+    }
+    
+    protected bool ChainCaptureSuccessful()
+    {
+        return _chainCaptureSuccessful;
+    }
+
+    protected void SetChainCaptureSuccessful(bool wasSuccessful)
+    {
+        _chainCaptureSuccessful = wasSuccessful;
     }
 }
