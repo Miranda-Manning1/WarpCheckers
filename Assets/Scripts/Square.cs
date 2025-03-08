@@ -21,12 +21,6 @@ public class Square : MonoBehaviour
         _board = Board.Instance;
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
     /*
      * Upon selection, attempt a move and highlight
      */
@@ -49,7 +43,7 @@ public class Square : MonoBehaviour
 
     private void OnMouseOver()
     {
-        if (Input.GetMouseButtonUp(1) && GameManager.DeveloperMode)
+        if (Input.GetMouseButtonUp(1) && GameManager.DeveloperMode && IsOccupied())
         {
             Destroy(this.GetPiece().gameObject);
         }
@@ -68,17 +62,17 @@ public class Square : MonoBehaviour
         // clicking on an empty square when no piece is selected does nothing
         if (!Board.PieceSelected() && !this.IsOccupied()) return;
         
-        bool isValidMove = false;
+        bool finishedMove = false;
         Piece currentPiece = null;
         
         // when clicking a square, attempt to move the previously selected square's piece to here
         if (Board.PieceSelected())
         {
             currentPiece = Board.SelectedSquare.GetPiece();
-            isValidMove = currentPiece!.AttemptMove(Board.SelectedSquare, this);
+            finishedMove = currentPiece!.AttemptMove(Board.SelectedSquare, this);
         }
 
-        if (isValidMove)
+        if (finishedMove)
         {
             Board.SelectedSquare.Deselect();
             GameManager.ClickedOnSquare = true;

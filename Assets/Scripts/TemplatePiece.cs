@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class TemplatePiece : Checker
+public class TemplatePiece : Piece
 {
     public static TemplatePiece Instance;
     
@@ -9,11 +9,5 @@ public class TemplatePiece : Checker
     {
         Instance = this;
         spriteRenderer = GetComponent<SpriteRenderer>();
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
 }

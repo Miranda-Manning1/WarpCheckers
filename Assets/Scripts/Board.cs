@@ -30,6 +30,9 @@ public class Board : MonoBehaviour
 
     }
 
+    /*
+     * creates the squares on the checkers board
+     */
     void CreateSquares()
     {
         Color squareColor1 = Color.black;
@@ -82,33 +85,53 @@ public class Board : MonoBehaviour
         }
     }
 
-    void CreateChecker(int x, int y, int team, int count, Piece templatePiece)
+    /*
+     * creates a single checkers piece
+     */
+    private void CreateChecker(int x, int y, int team, int count, Piece templatePiece)
     {
         Square square = Squares[x, y];
 
         // create piece and set fields
-        Checker checker = new GameObject("Piece" + count).AddComponent<Checker>();
-        checker.transform.SetParent(this.transform);
-        square.SetPiece(checker);
-        checker.transform.position = square.transform.position;
-        checker.square = square;
-        checker.team = team;
-        checker.pieceType = 1;
+        Piece piece = new GameObject("Piece" + count).AddComponent<Piece>();
+        piece.transform.SetParent(this.transform);
+        square.SetPiece(piece);
+        piece.transform.position = square.transform.position;
+        piece.square = square;
+        piece.team = team;
+        piece.pieceType = Piece.PieceType.Checker;
+        
+        // add sprite gameobjects
+        piece.pieceSprite = new GameObject("PieceSprite" + count).AddComponent<SpriteRenderer>();
+        piece.extraSprite = new GameObject("ExtraSprite" + count).AddComponent<SpriteRenderer>();
+        
+        piece.pieceSprite.transform.SetParent(piece.transform);
+        piece.extraSprite.transform.SetParent(piece.transform);
+        
+        piece.pieceSprite.transform.localPosition = Vector3.zero;
+        piece.extraSprite.transform.localPosition = Vector3.zero;
 
-        // add components to piece
-        checker.spriteRenderer = checker.AddComponent<SpriteRenderer>();
-        checker.spriteRenderer.sprite = templatePiece.spriteRenderer.sprite;
-        checker.spriteRenderer.sortingOrder = 1;
+        // disable the extra sprite - will be re-enabled upon piece promotion
+        piece.extraSprite.enabled = false;
+        
+        // set sprites
+        piece.pieceSprite.sprite = templatePiece.transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>().sprite;
+        piece.extraSprite.sprite = templatePiece.transform.GetChild(1).gameObject.GetComponent<SpriteRenderer>().sprite;
+        piece.pieceSprite.sortingOrder = 1;
+        piece.extraSprite.sortingOrder = 2;
 
         if (team == 0)
         {
-            checker.spriteRenderer.color = Color.cyan;
+            piece.pieceSprite.color = Color.cyan;
         }
     }
 
-    void CreateCheckers()
+    /*
+     * creates all the starting checkers pieces
+     */
+    private void CreateCheckers()
     {
-        Checker templatePiece = TemplatePiece.Instance;
+        Piece templatePiece = TemplatePiece.Instance;
 
         int[] startY = { 0, BoardLength.y - 3 };
         int[] endY = { 3, BoardLength.y };
