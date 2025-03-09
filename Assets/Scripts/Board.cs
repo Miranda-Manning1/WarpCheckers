@@ -154,7 +154,7 @@ public class Board : MonoBehaviour
     /*
      * Returns whether there is a piece on the selected square
      */
-    public static bool PieceSelected()
+    public static bool SquareSelected()
     {
         return Board.SelectedSquare != null && Board.SelectedSquare.GetPiece() != null;
     }

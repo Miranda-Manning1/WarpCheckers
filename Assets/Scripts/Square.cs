@@ -26,7 +26,7 @@ public class Square : MonoBehaviour
      */
     public void Select()
     {
-        Board.SelectedSquare.Deselect();
+        if (Board.SquareSelected()) Board.SelectedSquare.Deselect();
         spriteRenderer.color = (originalColor + Color.yellow) / 2;
         Board.SelectedSquare = this;
         _isSelected = true;
@@ -56,17 +56,14 @@ public class Square : MonoBehaviour
     {
         GameManager.ClickedOnSquare = true;
         
-        // clicking on piece of non-current-player does nothing
-        if (this.IsOccupied() && this.GetPiece().team != GameManager.CurrentPlayerTurn()) return;
-        
         // clicking on an empty square when no piece is selected does nothing
-        if (!Board.PieceSelected() && !this.IsOccupied()) return;
+        if (!Board.SquareSelected() && !this.IsOccupied()) return;
         
         bool finishedMove = false;
         Piece currentPiece = null;
         
         // when clicking a square, attempt to move the previously selected square's piece to here
-        if (Board.PieceSelected())
+        if (Board.SquareSelected() && Board.SelectedSquare.GetPiece().team == GameManager.CurrentPlayerTurn())
         {
             currentPiece = Board.SelectedSquare.GetPiece();
             finishedMove = currentPiece!.AttemptMove(Board.SelectedSquare, this);
@@ -84,7 +81,7 @@ public class Square : MonoBehaviour
         if (currentPiece != null && GameManager.ChainCaptureRunning()) return;
         
         // if no move done, just select a square
-        if (this.IsOccupied())
+        if (this.IsOccupied() && this.GetPiece().team == GameManager.CurrentPlayerTurn())
             Select();
     }
 
@@ -108,8 +105,55 @@ public class Square : MonoBehaviour
     {
         return _occupant;
     }
+    
+    /*
+     * Are two squares directly adjacent on the same row or the same column?
+     */
+    public static bool IsOrthogonallyAdjacent(Square originalSquare, Square destinationSquare)
+    {
+        return IsOrthogonal(originalSquare, destinationSquare, 1);
+    }
 
-    public static bool IsDirectlyDiagonal(Square originalSquare, Square destinationSquare)
+    /*
+     * Are two squares on either the same row or the same column?
+     */
+    private static bool IsOrthogonal(Square originalSquare, Square destinationSquare, int spacesApart)
+    {
+        return IsOnSameColumn(originalSquare, destinationSquare, spacesApart)
+               || IsOnSameRow(originalSquare, destinationSquare, spacesApart);
+    }
+
+    /*
+     * Are two squares on the same row, spacesApart spaces apart?
+     */
+    private static bool IsOnSameRow(Square originalSquare, Square destinationSquare, int spacesApart)
+    {
+        bool yEqual = originalSquare.coordinates.y == destinationSquare.coordinates.y;
+        int originalSquareAdjustedX = (originalSquare.coordinates.x) % 8;
+        int destinationSquareAdjustedX = (destinationSquare.coordinates.x) % 8;
+
+        int xCurrentSpacesApart = Math.Abs(originalSquareAdjustedX - destinationSquareAdjustedX);
+        bool xCorrectSpacesApart = xCurrentSpacesApart == spacesApart || xCurrentSpacesApart == Board.BoardLength.x - 1;
+        
+        return yEqual && xCorrectSpacesApart;
+    }
+
+    /*
+     * Are two squares on the same column, spacesApart spaces apart?
+     */
+    private static bool IsOnSameColumn(Square originalSquare, Square destinationSquare, int spacesApart)
+    {
+        bool xEqual = originalSquare.coordinates.x == destinationSquare.coordinates.x;
+        int originalSquareAdjustedY = (originalSquare.coordinates.y) % 8;
+        int destinationSquareAdjustedY = (destinationSquare.coordinates.y) % 8;
+        
+        int yCurrentSpacesApart = Math.Abs(originalSquareAdjustedY - destinationSquareAdjustedY);
+        bool yCorrectSpacesApart = yCurrentSpacesApart == spacesApart || yCurrentSpacesApart == Board.BoardLength.y - 1;
+        
+        return xEqual && yCorrectSpacesApart;
+    }
+
+    public static bool IsDiagonallyAdjacent(Square originalSquare, Square destinationSquare)
     {
         return IsDiagonal(originalSquare, destinationSquare, 1);
     }
@@ -206,4 +250,28 @@ public class Square : MonoBehaviour
 
         return Square.GetSquareFromCoordinates(absoluteCoordinates.x, absoluteCoordinates.y);
     }
+
+    /*
+     * swap the contents of any two squares
+     */
+    public static void SwapSquareContents(Square square1, Square square2)
+                                                               {
+        Square tempSquare = square1;
+        Piece tempPiece = square1.GetPiece();
+        square1.SetPiece(square2.GetPiece());
+        square2.SetPiece(tempPiece);
+        square1.GetPiece().square = square1;
+        square2.GetPiece().square = square2;
+        
+        square1.GetPiece().SnapToSquare();
+        square2.GetPiece().SnapToSquare();
+    }
 }
+
+/*
+ *         Square tempSquare = this.square;
+        this.square.SetPiece(destinationSquare.GetPiece());
+        destinationSquare.SetPiece(this);
+        this.square = destinationSquare;
+        destinationSquare.GetPiece().square = tempSquare;
+ */

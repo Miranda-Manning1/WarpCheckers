@@ -14,7 +14,8 @@ public class GameManager : MonoBehaviour
     private static bool _boardFlipped = false;
     private static bool _chainCaptureRunning = false;
 
-    public const bool DeveloperMode = true;
+    public static bool DeveloperMode = false;
+    private static bool flipBoard = true;
     
     private void Awake()
     {
@@ -30,7 +31,17 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        if (Input.GetKeyDown(KeyCode.D))
+        {
+            DeveloperMode = !DeveloperMode;
+            gameObject.transform.GetChild(0).GetComponent<SpriteRenderer>().enabled = DeveloperMode;
+        }
+
+        if (DeveloperMode && Input.GetKeyDown(KeyCode.F))
+        {
+            flipBoard = !flipBoard;
+            gameObject.transform.GetChild(1).GetComponent<SpriteRenderer>().enabled = !flipBoard;
+        }
     }
 
     /*
@@ -46,7 +57,7 @@ public class GameManager : MonoBehaviour
         };
 
         // don't flip the board if spacebar is held in dev mode
-        if (Input.GetKey(KeyCode.Space) && DeveloperMode) return;
+        if (DeveloperMode && !flipBoard) return;
         
         _boardFlipped = !_boardFlipped;
         Board.FlipBoard();
