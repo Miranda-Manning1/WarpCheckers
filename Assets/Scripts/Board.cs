@@ -10,6 +10,12 @@ public class Board : MonoBehaviour
     public static Vector2Int BoardLength = new Vector2Int(8, 8); // number of squares
     public static Square[,] Squares;
     public static Square SelectedSquare;
+    
+    public enum RelativeSide
+    {
+        Original,
+        Opposite
+    };
 
     private void Awake()
     {
