@@ -113,7 +113,7 @@ public class Board : MonoBehaviour
         // add sprite gameobjects
         piece.AddComponent<SpriteRenderer>();
         piece.pieceSprite = piece.gameObject.GetComponent<SpriteRenderer>();
-        piece.extraSprite = new GameObject("ExtraSprite" + count).AddComponent<SpriteRenderer>();
+        piece.extraSprite = new GameObject("ExtraSprite").AddComponent<SpriteRenderer>();
         
         piece.extraSprite.transform.SetParent(piece.transform);
         

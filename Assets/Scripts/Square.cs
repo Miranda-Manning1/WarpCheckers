@@ -275,6 +275,8 @@ public class Square : MonoBehaviour
         square1.GetPiece().square = square1;
         square2.GetPiece().square = square2;
         
+		square1.GetPiece().transform.SetParent(square1.transform);
+		square2.GetPiece().transform.SetParent(square2.transform);
         square1.GetPiece().SnapToSquare();
         square2.GetPiece().SnapToSquare();
     }
