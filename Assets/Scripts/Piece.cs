@@ -152,13 +152,19 @@ public class Piece : MonoBehaviour
          * 1) it's on the final square of the board
          * 2) it started on the second-to-last square of the board and ended on the first square of the board (meaning it jumped over the final square)
          */
-        if (pieceType != PieceType.Checker || !ReachedOppositeSide(originalSquare, destinationSquare)) return;
-        
-        pieceType = PieceType.King;
-        directionless = true;
-        canSwap = true;
-        extraSprite.enabled = true;
+		if (pieceType == PieceType.Checker && ReachedOppositeSide(originalSquare, destinationSquare))
+			this.Promote(PieceType.King);
     }
+
+	public void Promote(PieceType newPieceType)
+	{
+		if (newPieceType == PieceType.King) {
+			this.pieceType = PieceType.King;
+        	directionless = true;
+        	canSwap = true;
+        	extraSprite.enabled = true;
+		}
+	}
 
     /*
      * returns whether the piece moved to or past the opposite end of the board
