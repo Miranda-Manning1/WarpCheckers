@@ -40,7 +40,8 @@ public class Piece : MonoBehaviour
     {
         this.square.SetPiece(null);
         this.square = squareToSet;
-        this.transform.position = square.transform.position;
+        SnapToSquare();
+		this.transform.SetParent(this.square.transform);
         square.SetPiece(this);
     }
 
@@ -177,7 +178,7 @@ public class Piece : MonoBehaviour
 		if (newPieceType == PieceType.King) {
         	directionless = true;
         	canSwap = true;
-			extraSprite.sprite = gameManager.spriteArray[0];
+			extraSprite.sprite = gameManager.spriteArray[1];
 			extraSprite.color = Color.red;
         	extraSprite.enabled = true;
 			return;
@@ -188,7 +189,7 @@ public class Piece : MonoBehaviour
 			directionless = true;
 			canSwap = true;
 			canCycle = true;
-			extraSprite.sprite = gameManager.spriteArray[1];
+			extraSprite.sprite = gameManager.spriteArray[2];
 			extraSprite.color = Color.red;
 			extraSprite.enabled = true;
 			return;

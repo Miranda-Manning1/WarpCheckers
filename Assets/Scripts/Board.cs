@@ -7,6 +7,7 @@ public class Board : MonoBehaviour
 {
 
     public static Board Instance;
+    public GameManager gameManager;
     public static Vector2Int BoardLength = new Vector2Int(8, 8); // number of squares
     public static Square[,] Squares;
     public static Square SelectedSquare;
@@ -102,28 +103,27 @@ public class Board : MonoBehaviour
         // create piece and set fields
         Piece piece = new GameObject("Piece" + count).AddComponent<Piece>();
         piece.gameManager = FindObjectOfType<GameManager>();
-        piece.transform.SetParent(this.transform);
         square.SetPiece(piece);
         piece.transform.position = square.transform.position;
         piece.square = square;
         piece.team = team;
+        piece.transform.SetParent(piece.square.transform);
+
         
         // add sprite gameobjects
-        piece.pieceSprite = new GameObject("PieceSprite" + count).AddComponent<SpriteRenderer>();
+        piece.AddComponent<SpriteRenderer>();
+        piece.pieceSprite = piece.gameObject.GetComponent<SpriteRenderer>();
         piece.extraSprite = new GameObject("ExtraSprite" + count).AddComponent<SpriteRenderer>();
         
-        piece.pieceSprite.transform.SetParent(piece.transform);
         piece.extraSprite.transform.SetParent(piece.transform);
         
-        piece.pieceSprite.transform.localPosition = Vector3.zero;
         piece.extraSprite.transform.localPosition = Vector3.zero;
 
         // disable the extra sprite - will be re-enabled upon piece promotion
         piece.extraSprite.enabled = false;
         
         // set sprites
-        piece.pieceSprite.sprite = templatePiece.transform.GetChild(0).gameObject.GetComponent<SpriteRenderer>().sprite;
-        piece.extraSprite.sprite = templatePiece.transform.GetChild(1).gameObject.GetComponent<SpriteRenderer>().sprite;
+        piece.pieceSprite.sprite = gameManager.spriteArray[0];
         piece.pieceSprite.sortingOrder = 1;
         piece.extraSprite.sortingOrder = 2;
 
