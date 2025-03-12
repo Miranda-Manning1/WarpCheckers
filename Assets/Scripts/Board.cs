@@ -10,6 +10,12 @@ public class Board : MonoBehaviour
     public static Vector2Int BoardLength = new Vector2Int(8, 8); // number of squares
     public static Square[,] Squares;
     public static Square SelectedSquare;
+    
+    public enum RelativeSide
+    {
+        Original,
+        Opposite
+    };
 
     private void Awake()
     {
@@ -22,6 +28,7 @@ public class Board : MonoBehaviour
         CreateSquares();
         CreateCheckers();
         SelectedSquare = TemplateSquare.Instance;
+        TemplateSquare.Instance.SetPiece(TemplatePiece.Instance);
     }
 
     // Update is called once per frame
@@ -154,9 +161,9 @@ public class Board : MonoBehaviour
     /*
      * Returns whether there is a piece on the selected square
      */
-    public static bool PieceSelected()
+    public static bool SquareSelected()
     {
-        return Board.SelectedSquare != null && Board.SelectedSquare.GetPiece() != null;
+        return Board.SelectedSquare != null;
     }
 
     public static void FlipBoard()

@@ -35,13 +35,7 @@ public class Piece : MonoBehaviour
         _board = Board.Instance;
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
-    public void SetSquare(Square squareToSet)
+    private void SetSquare(Square squareToSet)
     {
         this.square.SetPiece(null);
         this.square = squareToSet;
@@ -59,7 +53,12 @@ public class Piece : MonoBehaviour
 
     private static void CapturePiece(Piece piece)
     {
-        piece.square.SetPiece(null); // Destroy() marks gameobjects for destruction, which then only happens at the end of the frame
+        /*
+         * Destroy() marks gameobjects for destruction, which then only happens at the end of the frame,
+         * so to prevent issues for the rest of this frame this flag is changed now
+         */
+        piece.square.SetPiece(null);
+        
         Destroy(piece.gameObject);
     }
     
@@ -104,7 +103,7 @@ public class Piece : MonoBehaviour
         return _chainCaptureSuccessful;
     }
 
-    private void SetChainCaptureSuccessful(bool wasSuccessful)
+    public void SetChainCaptureSuccessful(bool wasSuccessful)
     {
         _chainCaptureSuccessful = wasSuccessful;
     }
@@ -114,56 +113,135 @@ public class Piece : MonoBehaviour
      */
     public bool AttemptMove(Square originalSquare, Square destinationSquare)
     {
+        
         bool moveSuccessful = false;
         bool avoidEndingTurn = false;
-        
-        // can't move onto an existing piece
-        if (destinationSquare.IsOccupied()) return false;
 
-        // attempt basic movement; return true if it's successful
-        if (AttemptBasicMovement(originalSquare, destinationSquare)) moveSuccessful = true;
-        
-        if (!moveSuccessful && AttemptSpecialMoves(originalSquare, destinationSquare)) return true;
-        
+        // failsafe: if no piece currently selected, or if already-selected square is clicked, end attempted movement
+        if (!Board.SquareSelected() || originalSquare == destinationSquare) return false;
+
+        // attempt basic movement; set moveSuccessful to true if it's successful
+        if (!GameManager.ChainCaptureRunning()
+            && AttemptBasicMovement(originalSquare, destinationSquare))
+            moveSuccessful = true;
+
+        // attempt special moves; set moveSuccessful to true if any of them are successful
+        if (!GameManager.ChainCaptureRunning()
+            && !moveSuccessful
+            && AttemptSpecialMoves(originalSquare, destinationSquare)) moveSuccessful = true;
+
         // attempt a capture, which may lead into a chain capture
         if (!moveSuccessful) AttemptCapture(originalSquare, destinationSquare);
-        
+
         // avoid ending the turn if there's an ongoing chain capture, or end it if a chain capture has finished
         if (GameManager.ChainCaptureRunning()) avoidEndingTurn = true;
         if (!moveSuccessful && !avoidEndingTurn && ChainCaptureSuccessful()) moveSuccessful = true;
         
-        AttemptPromotion(originalSquare, destinationSquare);
+        // did the piece move at all, from either a finished turn or a part of a chain capture
+        bool didMove = moveSuccessful || avoidEndingTurn;
+        
+        if (didMove) AttemptPromotion(originalSquare, destinationSquare);
         
         return moveSuccessful && !avoidEndingTurn;
     }
 
-    public void AttemptPromotion(Square originalSquare, Square destinationSquare)
+    private void AttemptPromotion(Square originalSquare, Square destinationSquare)
     {
         /*
-         * for a checker piece to promote, one of the following two must be true:
+         * for a checker to promote to a king, one of the following two must be true:
          * 1) it's on the final square of the board
          * 2) it started on the second-to-last square of the board and ended on the first square of the board (meaning it jumped over the final square)
          */
-        if (pieceType == PieceType.Checker)
+        if (pieceType != PieceType.Checker || !ReachedOppositeSide(originalSquare, destinationSquare)) return;
+        
+        pieceType = PieceType.King;
+        directionless = true;
+        canSwap = true;
+        extraSprite.enabled = true;
+    }
+
+    /*
+     * returns whether the piece moved to or past the opposite end of the board
+     */
+    private bool ReachedOppositeSide(Square originalSquare, Square destinationSquare)
+    {
+        switch (team)
         {
-            if (destinationSquare.coordinates.y == Board.BoardLength.y - 1
-                || (originalSquare.coordinates.y == Board.BoardLength.y - 2 && destinationSquare.coordinates.y == 0))
-            {
-                pieceType = PieceType.King;
-                directionless = true;
-                canSwap = true;
-                extraSprite.enabled = true;
-            }
+            case 0 when destinationSquare.coordinates.y == Board.BoardLength.y - 1
+                        || (originalSquare.coordinates.y == Board.BoardLength.y - 2 && destinationSquare.coordinates.y == 0):
+            case 1 when destinationSquare.coordinates.y == 0
+                        || (originalSquare.coordinates.y == 1 && destinationSquare.coordinates.y == Board.BoardLength.y - 1):
+                return true;
+            default:
+                return false;
+        }
+    } 
+    
+    /*
+    * returns whether a given square is on a given relative side of the board for a given piece.
+    */
+    private static bool IsOnRelativeSide(Piece piece, Square square, Board.RelativeSide relativeSide)
+    {
+        int team = piece.team;
+        int y = square.coordinates.y;
+        int boardEnd = Board.BoardLength.y - 1;
+
+        switch (relativeSide)
+        {
+            case Board.RelativeSide.Original:
+                return (team == 0) ? (y == 0) : (y == boardEnd);
+
+            case Board.RelativeSide.Opposite:
+                return (team == 0) ? (y == boardEnd) : (y == 0);
+
+            default:
+                return false;
         }
     }
 
-    private bool AttemptSwap(Square originalSquare, Square destinationSquare)
+    /*
+     * wrapper method - returns whether a given square is on the original side of the board for a given piece
+     */
+    private static bool IsOnOriginalSide(Piece piece, Square square)
     {
-        if (!canSwap) return false;
-        
-        return false;
+        return IsOnRelativeSide(piece, square, Board.RelativeSide.Original);
     }
     
+    /*
+     * wrapper method - returns whether a given square is on the opposite side of the board for a given piece
+     */
+    private static bool IsOnOppositeSide(Piece piece, Square square)
+    {
+        return IsOnRelativeSide(piece, square, Board.RelativeSide.Opposite);
+    }
+
+    /*
+     * attempt a swap move between two pieces
+     */
+    private bool AttemptSwap(Square thisPieceSquare, Square otherPieceSquare)
+    {
+        if (!canSwap) return false;
+        if (!otherPieceSquare.IsOccupied()) return false;
+        if (!Square.IsOrthogonallyAdjacent(thisPieceSquare, otherPieceSquare)) return false;
+        
+        Piece otherPiece = otherPieceSquare.GetPiece();
+        
+        // cannot swap if it would warp a piece to its opposite side, resulting in promotion
+        if (
+            otherPiece.pieceType == PieceType.Checker
+            && IsOnOriginalSide(otherPiece, otherPieceSquare)
+            && IsOnOppositeSide(otherPiece, thisPieceSquare)
+            )
+            return false;
+        
+        Square.SwapSquareContents(thisPieceSquare, otherPieceSquare);
+        
+        return true;
+    }
+    
+    /*
+     * attempts every special move
+     */
     private bool AttemptSpecialMoves(Square originalSquare, Square destinationSquare)
     {
         if (AttemptSwap(originalSquare, destinationSquare)) return true;
@@ -176,9 +254,12 @@ public class Piece : MonoBehaviour
     private bool AttemptBasicMovement(Square originalSquare, Square destinationSquare)
     {
         // basic movement
-        if (Square.IsDirectlyDiagonal(originalSquare, destinationSquare)
+        if (
+            !destinationSquare.IsOccupied()
+            && Square.IsDiagonallyAdjacent(originalSquare, destinationSquare)
             && FollowsDirectionRule(this, originalSquare, destinationSquare)
-            && !GameManager.ChainCaptureRunning())
+            && !GameManager.ChainCaptureRunning()
+            )
         {
             SetSquare(destinationSquare);
             return true;
@@ -198,8 +279,12 @@ public class Piece : MonoBehaviour
         // if capture attempt failed, don't continue to run the capture
         if (!captureOccured) return;
 
-        if (ChainCanContinue(square))
-        {
+        /*
+         * if turning this capture into a chain capture is possible:
+         * flag ChainCaptureRunning, then select the destination square
+         */
+        if (ChainCanContinue(destinationSquare))
+        { 
             GameManager.SetChainCaptureRunning(true);
             this.square.Select();
             return;
@@ -214,11 +299,11 @@ public class Piece : MonoBehaviour
      */
     private bool IsValidCaptureDestination(Square originalSquare, Square destinationSquare)
     {
-        // can only move forwards
-        if (!FollowsDirectionRule(this, originalSquare, destinationSquare)) return false;
-        
         // can't move onto an existing piece
         if (destinationSquare.IsOccupied()) return false;
+        
+        // can only move forwards
+        if (!FollowsDirectionRule(this, originalSquare, destinationSquare)) return false;
         
         // must land 2 spaces away
         if (!Square.IsDiagonal(originalSquare, destinationSquare, 2)) return false;
@@ -297,5 +382,13 @@ public class Piece : MonoBehaviour
         Piece.CapturePiece(capturePiece);
         
         return true;
+    }
+    
+    /*
+     * Sets the piece's visual position to its square
+     */
+    public void SnapToSquare()
+    {
+        this.transform.position = this.square.transform.position;
     }
 }
