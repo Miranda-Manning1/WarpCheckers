@@ -28,6 +28,7 @@ public class Board : MonoBehaviour
         CreateSquares();
         CreateCheckers();
         SelectedSquare = TemplateSquare.Instance;
+        TemplateSquare.Instance.SetPiece(TemplatePiece.Instance);
     }
 
     // Update is called once per frame
@@ -162,7 +163,7 @@ public class Board : MonoBehaviour
      */
     public static bool SquareSelected()
     {
-        return Board.SelectedSquare != null && Board.SelectedSquare.GetPiece() != null;
+        return Board.SelectedSquare != null;
     }
 
     public static void FlipBoard()

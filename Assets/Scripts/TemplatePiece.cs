@@ -7,6 +7,7 @@ public class TemplatePiece : Piece
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        team = -1;
         Instance = this;
         spriteRenderer = GetComponent<SpriteRenderer>();
     }

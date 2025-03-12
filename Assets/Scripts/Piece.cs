@@ -103,7 +103,7 @@ public class Piece : MonoBehaviour
         return _chainCaptureSuccessful;
     }
 
-    private void SetChainCaptureSuccessful(bool wasSuccessful)
+    public void SetChainCaptureSuccessful(bool wasSuccessful)
     {
         _chainCaptureSuccessful = wasSuccessful;
     }
@@ -113,16 +113,22 @@ public class Piece : MonoBehaviour
      */
     public bool AttemptMove(Square originalSquare, Square destinationSquare)
     {
+        
         bool moveSuccessful = false;
         bool avoidEndingTurn = false;
 
-        // failsafe: if no piece currently selected, end attempted movement
-        if (!Board.SquareSelected()) return false;
+        // failsafe: if no piece currently selected, or if already-selected square is clicked, end attempted movement
+        if (!Board.SquareSelected() || originalSquare == destinationSquare) return false;
 
-        // attempt basic movement; return true if it's successful
-        if (AttemptBasicMovement(originalSquare, destinationSquare)) moveSuccessful = true;
+        // attempt basic movement; set moveSuccessful to true if it's successful
+        if (!GameManager.ChainCaptureRunning()
+            && AttemptBasicMovement(originalSquare, destinationSquare))
+            moveSuccessful = true;
 
-        if (!moveSuccessful && AttemptSpecialMoves(originalSquare, destinationSquare)) moveSuccessful = true;
+        // attempt special moves; set moveSuccessful to true if any of them are successful
+        if (!GameManager.ChainCaptureRunning()
+            && !moveSuccessful
+            && AttemptSpecialMoves(originalSquare, destinationSquare)) moveSuccessful = true;
 
         // attempt a capture, which may lead into a chain capture
         if (!moveSuccessful) AttemptCapture(originalSquare, destinationSquare);
@@ -221,9 +227,11 @@ public class Piece : MonoBehaviour
         Piece otherPiece = otherPieceSquare.GetPiece();
         
         // cannot swap if it would warp a piece to its opposite side, resulting in promotion
-        if (otherPiece.pieceType == PieceType.Checker
+        if (
+            otherPiece.pieceType == PieceType.Checker
             && IsOnOriginalSide(otherPiece, otherPieceSquare)
-            && IsOnOppositeSide(otherPiece, thisPieceSquare))
+            && IsOnOppositeSide(otherPiece, thisPieceSquare)
+            )
             return false;
         
         Square.SwapSquareContents(thisPieceSquare, otherPieceSquare);
@@ -246,10 +254,12 @@ public class Piece : MonoBehaviour
     private bool AttemptBasicMovement(Square originalSquare, Square destinationSquare)
     {
         // basic movement
-        if (!destinationSquare.IsOccupied()
+        if (
+            !destinationSquare.IsOccupied()
             && Square.IsDiagonallyAdjacent(originalSquare, destinationSquare)
             && FollowsDirectionRule(this, originalSquare, destinationSquare)
-            && !GameManager.ChainCaptureRunning())
+            && !GameManager.ChainCaptureRunning()
+            )
         {
             SetSquare(destinationSquare);
             return true;
@@ -269,8 +279,12 @@ public class Piece : MonoBehaviour
         // if capture attempt failed, don't continue to run the capture
         if (!captureOccured) return;
 
-        if (ChainCanContinue(square))
-        {
+        /*
+         * if turning this capture into a chain capture is possible:
+         * flag ChainCaptureRunning, then select the destination square
+         */
+        if (ChainCanContinue(destinationSquare))
+        { 
             GameManager.SetChainCaptureRunning(true);
             this.square.Select();
             return;

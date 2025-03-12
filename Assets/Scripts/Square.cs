@@ -38,6 +38,7 @@ public class Square : MonoBehaviour
     public void Deselect()
     {
         _isSelected = false;
+        Board.SelectedSquare = null;
         spriteRenderer.color = originalColor;
     }
 
@@ -59,6 +60,13 @@ public class Square : MonoBehaviour
         // clicking on an empty square when no piece is selected does nothing
         if (!Board.SquareSelected() && !this.IsOccupied()) return;
         
+        // clicking on a square that's already selected deselects it
+        if (Board.SquareSelected() && Board.SelectedSquare == this)
+        {
+            this.Deselect();
+            return;
+        }
+        
         bool finishedMove = false;
         Piece currentPiece = null;
         
@@ -73,6 +81,7 @@ public class Square : MonoBehaviour
         {
             Board.SelectedSquare.Deselect();
             GameManager.ClickedOnSquare = true;
+            currentPiece.SetChainCaptureSuccessful(false);
             GameManager.SwitchPlayerTurn();
             return;
         }
@@ -129,10 +138,8 @@ public class Square : MonoBehaviour
     private static bool IsOnSameRow(Square originalSquare, Square destinationSquare, int spacesApart)
     {
         bool yEqual = originalSquare.coordinates.y == destinationSquare.coordinates.y;
-        int originalSquareAdjustedX = (originalSquare.coordinates.x) % 8;
-        int destinationSquareAdjustedX = (destinationSquare.coordinates.x) % 8;
 
-        int xCurrentSpacesApart = Math.Abs(originalSquareAdjustedX - destinationSquareAdjustedX);
+        int xCurrentSpacesApart = Math.Abs(originalSquare.coordinates.x - destinationSquare.coordinates.x);
         bool xCorrectSpacesApart = xCurrentSpacesApart == spacesApart || xCurrentSpacesApart == Board.BoardLength.x - 1;
         
         return yEqual && xCorrectSpacesApart;
@@ -144,10 +151,8 @@ public class Square : MonoBehaviour
     private static bool IsOnSameColumn(Square originalSquare, Square destinationSquare, int spacesApart)
     {
         bool xEqual = originalSquare.coordinates.x == destinationSquare.coordinates.x;
-        int originalSquareAdjustedY = (originalSquare.coordinates.y) % 8;
-        int destinationSquareAdjustedY = (destinationSquare.coordinates.y) % 8;
         
-        int yCurrentSpacesApart = Math.Abs(originalSquareAdjustedY - destinationSquareAdjustedY);
+        int yCurrentSpacesApart = Math.Abs(originalSquare.coordinates.y - destinationSquare.coordinates.y);
         bool yCorrectSpacesApart = yCurrentSpacesApart == spacesApart || yCurrentSpacesApart == Board.BoardLength.y - 1;
         
         return xEqual && yCorrectSpacesApart;
