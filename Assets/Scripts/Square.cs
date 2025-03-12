@@ -50,8 +50,10 @@ public class Square : MonoBehaviour
         }
 
 		// press K on a piece when Developer Mode is active to turn it into a King
-		if (GameManager.DeveloperMode && Input.GetKeyDown(KeyCode.K) && IsOccupied()) {
-			GetPiece().Promote(Piece.PieceType.King);
+		if (GameManager.DeveloperMode && IsOccupied()) {
+			if (Input.GetKeyDown(KeyCode.K)) GetPiece().SetPieceType(Piece.PieceType.Checker);
+			if (Input.GetKeyDown(KeyCode.K)) GetPiece().SetPieceType(Piece.PieceType.King);
+			if (Input.GetKeyDown(KeyCode.Q)) GetPiece().SetPieceType(Piece.PieceType.Queen);
 		}
     }
 

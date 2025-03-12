@@ -16,6 +16,10 @@ public class GameManager : MonoBehaviour
 
     public static bool DeveloperMode = false;
     private static bool flipBoard = true;
+
+	public static Sprite kingSprite; 
+	public static Sprite queenSprite;
+	public Sprite[] spriteArray;
     
     private void Awake()
     {

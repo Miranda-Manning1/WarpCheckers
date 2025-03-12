@@ -101,12 +101,12 @@ public class Board : MonoBehaviour
 
         // create piece and set fields
         Piece piece = new GameObject("Piece" + count).AddComponent<Piece>();
+        piece.gameManager = FindObjectOfType<GameManager>();
         piece.transform.SetParent(this.transform);
         square.SetPiece(piece);
         piece.transform.position = square.transform.position;
         piece.square = square;
         piece.team = team;
-        piece.pieceType = Piece.PieceType.Checker;
         
         // add sprite gameobjects
         piece.pieceSprite = new GameObject("PieceSprite" + count).AddComponent<SpriteRenderer>();
@@ -131,6 +131,8 @@ public class Board : MonoBehaviour
         {
             piece.pieceSprite.color = Color.cyan;
         }
+        
+        piece.SetPieceType(Piece.PieceType.Checker);
     }
 
     /*

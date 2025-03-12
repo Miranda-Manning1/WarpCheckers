@@ -4,6 +4,7 @@ using UnityEngine;
 public class Piece : MonoBehaviour
 {
     private Board _board;
+	public GameManager gameManager;
     public SpriteRenderer pieceSprite;
     public SpriteRenderer extraSprite;
     
@@ -153,16 +154,44 @@ public class Piece : MonoBehaviour
          * 2) it started on the second-to-last square of the board and ended on the first square of the board (meaning it jumped over the final square)
          */
 		if (pieceType == PieceType.Checker && ReachedOppositeSide(originalSquare, destinationSquare))
-			this.Promote(PieceType.King);
+			this.SetPieceType(PieceType.King);
     }
 
-	public void Promote(PieceType newPieceType)
+	/*
+	 * set the type of a piece, and change attributes appropriately
+	*/
+	public void SetPieceType(PieceType newPieceType)
 	{
+		this.pieceType = newPieceType;
+
+		// set to Checker
+		if (newPieceType == PieceType.Checker) {
+			directionless = false;
+			canSwap = false;
+			canCycle = false;
+			extraSprite.enabled = false;
+			return;
+		}
+
+		// set to King
 		if (newPieceType == PieceType.King) {
-			this.pieceType = PieceType.King;
         	directionless = true;
         	canSwap = true;
+			extraSprite.sprite = gameManager.spriteArray[0];
+			extraSprite.color = Color.red;
         	extraSprite.enabled = true;
+			return;
+		}
+
+		// set to Queen
+		if (newPieceType == PieceType.Queen) {
+			directionless = true;
+			canSwap = true;
+			canCycle = true;
+			extraSprite.sprite = gameManager.spriteArray[1];
+			extraSprite.color = Color.red;
+			extraSprite.enabled = true;
+			return;
 		}
 	}
 
