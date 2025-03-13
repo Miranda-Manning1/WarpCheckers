@@ -157,8 +157,13 @@ public class Piece : MonoBehaviour
         
         // did the piece move at all, from either a finished turn or a part of a chain capture
         bool didMove = moveSuccessful || avoidEndingTurn;
-        
-        if (didMove) AttemptPromotion(originalSquare, destinationSquare);
+
+        if (didMove)
+        {
+            Board.SquaresTraveledThisTurn.Add(originalSquare);
+            AttemptPromotion(originalSquare, destinationSquare);
+        }
+		if (moveSuccessful) Board.SquaresTraveledThisTurn.Add(destinationSquare);
         
         return moveSuccessful && !avoidEndingTurn;
     }
@@ -239,9 +244,9 @@ public class Piece : MonoBehaviour
     {
         switch (team)
         {
-            case 0 when destinationSquare.coordinates.y == Board.BoardLength.y - 1
+            case 0 when IsOnOppositeSide(this, destinationSquare)
                         || (originalSquare.coordinates.y == Board.BoardLength.y - 2 && destinationSquare.coordinates.y == 0):
-            case 1 when destinationSquare.coordinates.y == 0
+            case 1 when IsOnOppositeSide(this, destinationSquare)
                         || (originalSquare.coordinates.y == 1 && destinationSquare.coordinates.y == Board.BoardLength.y - 1):
                 return true;
             default:

@@ -1,6 +1,7 @@
 using System;
 using Unity.VisualScripting;
 using UnityEngine;
+using System.Collections.Generic;
 
 public class GameManager : MonoBehaviour
 {
@@ -48,17 +49,28 @@ public class GameManager : MonoBehaviour
         }
     }
 
+	public static int GetSwitchedPlayerTurn(int currentTurn) {
+    	return currentTurn switch
+    	{
+        	0 => 1,
+        	1 => 0,
+        	_ => currentTurn
+    	};
+	}
+
     /*
      * Switch the turn from one player's to the other's
      */
     public static void SwitchPlayerTurn()
     {
-        _playerTurn = _playerTurn switch
-        {
-            0 => 1,
-            1 => 0,
-            _ => _playerTurn
-        };
+        int oldTurn = _playerTurn;
+		_playerTurn = GetSwitchedPlayerTurn(_playerTurn);
+
+		// highlight the squares the opponent moved on, while un-highlighting the new turn's squares
+        Board.LastSquaresMoved[oldTurn] = Board.SquaresTraveledThisTurn;
+		Square.SetAllHighlighted(Board.LastSquaresMoved[_playerTurn], false);
+		Square.SetAllHighlighted(Board.LastSquaresMoved[oldTurn], true);
+		Board.SquaresTraveledThisTurn = new List<Square> { };
 
         // don't flip the board if spacebar is held in dev mode
         if (DeveloperMode && !flipBoard) return;

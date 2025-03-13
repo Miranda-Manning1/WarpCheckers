@@ -2,6 +2,7 @@ using System;
 using NUnit.Framework.Constraints;
 using Unity.VisualScripting.Dependencies.NCalc;
 using UnityEngine;
+using System.Collections.Generic;
 
 public class Square : MonoBehaviour
 {
@@ -27,7 +28,7 @@ public class Square : MonoBehaviour
     public void Select()
     {
         if (Board.SquareSelected()) Board.SelectedSquare.Deselect();
-        spriteRenderer.color = (originalColor + Color.yellow) / 2;
+        SetHighlighted(this, true);
         Board.SelectedSquare = this;
         _isSelected = true;
     }
@@ -39,7 +40,7 @@ public class Square : MonoBehaviour
     {
         _isSelected = false;
         Board.SelectedSquare = null;
-        spriteRenderer.color = originalColor;
+        SetHighlighted(this, false);
     }
 
     private void OnMouseOver()
@@ -90,6 +91,7 @@ public class Square : MonoBehaviour
             GameManager.ClickedOnSquare = true;
             currentPiece.SetChainCaptureSuccessful(false);
             GameManager.SwitchPlayerTurn();
+            
             return;
         }
 
@@ -99,6 +101,28 @@ public class Square : MonoBehaviour
         // if no move done, just select a square
         if (this.IsOccupied() && this.GetPiece().team == GameManager.CurrentPlayerTurn())
             Select();
+    }
+    
+    /*
+     * set highlighted or un-highlighted to every square in a List
+     */
+    public static void SetAllHighlighted(List<Square> squares, bool highlighted)
+    {
+        foreach (Square square in squares)
+        {
+            SetHighlighted(square, highlighted);
+        }
+        return;
+    }
+    
+    /*
+     * visually highlight or un-highlight the square
+     */
+    public static void SetHighlighted(Square square, bool highlighted)
+    {
+        if (highlighted) square.spriteRenderer.color = (square.originalColor + Color.yellow) / 2;
+        if (!highlighted) square.spriteRenderer.color = square.originalColor;
+        return;
     }
 
     public void SetPiece(Piece piece)

@@ -2,6 +2,7 @@ using System;
 using Unity.VisualScripting;
 using UnityEngine;
 using Vector2 = UnityEngine.Vector2;
+using System.Collections.Generic;
 
 public class Board : MonoBehaviour
 {
@@ -11,6 +12,9 @@ public class Board : MonoBehaviour
     public static Vector2Int BoardLength = new Vector2Int(8, 8); // number of squares
     public static Square[,] Squares;
     public static Square SelectedSquare;
+
+	public static List<Square>[] LastSquaresMoved = new List<Square>[2];
+	public static List<Square> SquaresTraveledThisTurn = new List<Square> { };
 
     private float squareSize = 2f;
     
@@ -28,6 +32,12 @@ public class Board : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+
+		List<Square> team0LastSquaresMoved = new List<Square> { };
+		List<Square> team1LastSquaresMoved = new List<Square> { };
+		LastSquaresMoved[0] = team0LastSquaresMoved;
+		LastSquaresMoved[1] = team1LastSquaresMoved;
+
         CreateSquares();
         CreateCheckers();
         SelectedSquare = TemplateSquare.Instance;
@@ -172,6 +182,9 @@ public class Board : MonoBehaviour
         return Board.SelectedSquare != null;
     }
 
+	/*
+	 * flips the board for the other team - generally called during turn switching
+	 */
     public static void FlipBoard()
     {
         for (int x = 0; x < BoardLength.y; x++)
