@@ -242,16 +242,20 @@ public class Piece : MonoBehaviour
      */
     private bool ReachedOppositeSide(Square originalSquare, Square destinationSquare)
     {
-        switch (team)
+
+        if (team == GameManager.BackwardTeam)
         {
-            case 0 when IsOnOppositeSide(this, destinationSquare)
-                        || (originalSquare.coordinates.y == Board.BoardLength.y - 2 && destinationSquare.coordinates.y == 0):
-            case 1 when IsOnOppositeSide(this, destinationSquare)
-                        || (originalSquare.coordinates.y == 1 && destinationSquare.coordinates.y == Board.BoardLength.y - 1):
-                return true;
-            default:
-                return false;
+            return IsOnOppositeSide(this, destinationSquare)
+                   || (originalSquare.coordinates.y == Board.BoardLength.y - 2 && destinationSquare.coordinates.y == 0);
         }
+
+        if (team != GameManager.BackwardTeam)
+        {
+            return IsOnOppositeSide(this, destinationSquare)
+                   || (originalSquare.coordinates.y == 1 && destinationSquare.coordinates.y == Board.BoardLength.y - 1);
+        }
+
+        return false;
     } 
     
     /*
@@ -263,13 +267,16 @@ public class Piece : MonoBehaviour
         int y = square.coordinates.y;
         int boardEnd = Board.BoardLength.y - 1;
 
+        /*
+         * if team is the backwards team, original side and opposite side are switched from those of the non-backwards team
+         */
         switch (relativeSide)
         {
             case Board.RelativeSide.Original:
-                return (team == 0) ? (y == 0) : (y == boardEnd);
+                return (team == GameManager.BackwardTeam) ? (y == boardEnd) : (y == 0);
 
             case Board.RelativeSide.Opposite:
-                return (team == 0) ? (y == boardEnd) : (y == 0);
+                return (team == GameManager.BackwardTeam) ? (y == 0) : (y == boardEnd);
 
             default:
                 return false;

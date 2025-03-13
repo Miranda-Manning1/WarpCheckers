@@ -17,6 +17,7 @@ public class GameManager : MonoBehaviour
 
     public static bool DeveloperMode = false;
     private static bool flipBoard = true;
+    public static int BackwardTeam = 1;
 
 	public static Sprite kingSprite; 
 	public static Sprite queenSprite;
@@ -49,7 +50,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-	public static int GetSwitchedPlayerTurn(int currentTurn) {
+	public static int GetOppositeTeam(int currentTurn) {
     	return currentTurn switch
     	{
         	0 => 1,
@@ -64,7 +65,7 @@ public class GameManager : MonoBehaviour
     public static void SwitchPlayerTurn()
     {
         int oldTurn = _playerTurn;
-		_playerTurn = GetSwitchedPlayerTurn(_playerTurn);
+		_playerTurn = GetOppositeTeam(_playerTurn);
 
 		// highlight the squares the opponent moved on, while un-highlighting the new turn's squares
         Board.LastSquaresMoved[oldTurn] = Board.SquaresTraveledThisTurn;
@@ -76,6 +77,7 @@ public class GameManager : MonoBehaviour
         if (DeveloperMode && !flipBoard) return;
         
         _boardFlipped = !_boardFlipped;
+        BackwardTeam = GetOppositeTeam(_playerTurn);
         Board.FlipBoard();
     }
 

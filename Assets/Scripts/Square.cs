@@ -63,6 +63,7 @@ public class Square : MonoBehaviour
      */
     private void OnMouseUp()
     {
+        Debug.Log(this.coordinates);
         GameManager.ClickedOnSquare = true;
         
         // clicking on an empty square when no piece is selected does nothing
