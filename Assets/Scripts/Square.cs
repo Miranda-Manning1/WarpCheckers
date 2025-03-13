@@ -177,8 +177,8 @@ public class Square : MonoBehaviour
         for (int i = 0; i < 2; i++)
         {
             // check in front of and behind
-            if ((originalSquare.coordinates[i] + spacesApart) % 8 == destinationSquare.coordinates[i]
-                || (originalSquare.coordinates[i] - spacesApart + 8) % 8 == destinationSquare.coordinates[i])
+            if ((originalSquare.coordinates[i] + spacesApart) % Board.BoardLength[i] == destinationSquare.coordinates[i]
+                || (originalSquare.coordinates[i] - spacesApart + Board.BoardLength[i]) % Board.BoardLength[i] == destinationSquare.coordinates[i])
                 continue;
 
             // squares aren't diagonal spacesApart spaces apart
@@ -200,14 +200,14 @@ public class Square : MonoBehaviour
         for (int i = 0; i < 2; i++)
         {
             // check in front of
-            if ((originalSquare.coordinates[i] + 2) % 8 == destinationSquare.coordinates[i])
+            if ((originalSquare.coordinates[i] + 2) % Board.BoardLength[i] == destinationSquare.coordinates[i])
             {
-                betweenSquareCoordinates[i] = (originalSquare.coordinates[i] + 1) % 8;
+                betweenSquareCoordinates[i] = (originalSquare.coordinates[i] + 1) % Board.BoardLength[i];
             }
             // check behind
-            else if ((originalSquare.coordinates[i] - 2 + 8) % 8 == destinationSquare.coordinates[i])
+            else if ((originalSquare.coordinates[i] - 2 + Board.BoardLength[i]) % Board.BoardLength[i] == destinationSquare.coordinates[i])
             {
-                betweenSquareCoordinates[i] = (originalSquare.coordinates[i] - 1 + 8) % 8;
+                betweenSquareCoordinates[i] = (originalSquare.coordinates[i] - 1 + Board.BoardLength[i]) % Board.BoardLength[i];
             }
             // squares aren't two apart on the diagonal
             else
@@ -254,11 +254,11 @@ public class Square : MonoBehaviour
     {
         /*
          * calculate absolute coordinates of square
-         * + 8 is used to accomodate negative relative coordinates
+         * + Board.BoardLength.x/y is used to accomodate negative relative coordinates
          */
         Vector2Int absoluteCoordinates = new Vector2Int((
-            originalSquare.coordinates.x + x + 8) % 8,
-            (originalSquare.coordinates.y + y + 8) % 8);
+            originalSquare.coordinates.x + x + Board.BoardLength.x) % Board.BoardLength.x,
+            (originalSquare.coordinates.y + y + Board.BoardLength.x) % Board.BoardLength.x);
 
         return Square.GetSquareFromCoordinates(absoluteCoordinates.x, absoluteCoordinates.y);
     }
