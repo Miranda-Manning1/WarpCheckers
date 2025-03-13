@@ -11,6 +11,8 @@ public class Board : MonoBehaviour
     public static Vector2Int BoardLength = new Vector2Int(8, 8); // number of squares
     public static Square[,] Squares;
     public static Square SelectedSquare;
+
+    private float squareSize = 2f;
     
     public enum RelativeSide
     {
@@ -53,9 +55,8 @@ public class Board : MonoBehaviour
         Square templateSquare = TemplateSquare.Instance;
 
         // prime the size/location of the initial square
-        Vector2 squareSize = new Vector2(Screen.width / (1120 / 2f), Screen.height / (510 / 2f));
-        float firstSquareX = transform.position.x - ((BoardLength.x / 2f) * squareSize.x) + (squareSize.x / 2);
-        float firstSquareY = transform.position.y - ((BoardLength.y / 2f) * squareSize.y) + (squareSize.y / 2);
+        float firstSquareX = transform.position.x - ((BoardLength.x / 2f) * squareSize) + (squareSize / 2);
+        float firstSquareY = transform.position.y - ((BoardLength.y / 2f) * squareSize) + (squareSize / 2);
         Vector2 firstSquare = new Vector2(firstSquareX, firstSquareY);
 
         // create the grid of squares
@@ -80,9 +81,11 @@ public class Board : MonoBehaviour
                 square.spriteRenderer.sortingOrder = 0;
 
                 // set square location
-                float xPosition = firstSquare.x + (x * squareSize.x);
-                float yPosition = firstSquare.y + (y * squareSize.y);
+                float xPosition = firstSquare.x + (x * squareSize);
+                float yPosition = firstSquare.y + (y * squareSize);
                 square.transform.localPosition = new Vector3(xPosition, yPosition, 0);
+                square.transform.localScale = new Vector3(squareSize, squareSize, square.transform.localScale.z);
+
 
                 square.coordinates = new Vector2Int(x, y);
                 Squares[x, y] = square;
@@ -105,6 +108,7 @@ public class Board : MonoBehaviour
         piece.gameManager = FindObjectOfType<GameManager>();
         square.SetPiece(piece);
         piece.transform.position = square.transform.position;
+        piece.transform.localScale = new Vector3(squareSize / 2f, squareSize / 2f, piece.transform.localScale.z);
         piece.square = square;
         piece.team = team;
         piece.transform.SetParent(piece.square.transform);

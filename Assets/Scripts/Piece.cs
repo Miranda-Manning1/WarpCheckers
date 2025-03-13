@@ -53,8 +53,19 @@ public class Piece : MonoBehaviour
         return false;
     }
 
+	 /*
+     * Capture a piece
+     */
     private static void CapturePiece(Piece piece)
     {
+		DestroyPiece(piece);
+    }
+
+	 /*
+     * Destroys a piece, for any reason
+     */
+	public static void DestroyPiece(Piece piece)
+	{
         /*
          * Destroy() marks gameobjects for destruction, which then only happens at the end of the frame,
          * so to prevent issues for the rest of this frame this flag is changed now
@@ -62,7 +73,7 @@ public class Piece : MonoBehaviour
         piece.square.SetPiece(null);
         
         Destroy(piece.gameObject);
-    }
+	}
     
     /*
      * Some checker types can only move forwards
@@ -132,6 +143,11 @@ public class Piece : MonoBehaviour
             && !moveSuccessful
             && AttemptSpecialMoves(originalSquare, destinationSquare)) moveSuccessful = true;
 
+		// attempt king-to-queen promotion
+		if(!GameManager.ChainCaptureRunning()
+			&& !moveSuccessful
+			&& AttemptQueenPromotion(originalSquare, destinationSquare)) moveSuccessful = true;
+
         // attempt a capture, which may lead into a chain capture
         if (!moveSuccessful) AttemptCapture(originalSquare, destinationSquare);
 
@@ -147,6 +163,26 @@ public class Piece : MonoBehaviour
         return moveSuccessful && !avoidEndingTurn;
     }
 
+	/*
+	 * attempt stacking one king onto another king to create a queen
+	 */
+	private bool AttemptQueenPromotion(Square originalSquare, Square destinationSquare) {
+
+		// check all criteria for a king-to-queen promotion
+		if (!destinationSquare.IsOccupied()) return false;
+		Piece otherPiece = destinationSquare.GetPiece();
+		if (otherPiece.pieceType != PieceType.King) return false;
+		if (otherPiece.team != this.team) return false;
+		if (!Square.IsDiagonallyAdjacent(originalSquare, destinationSquare)) return false;
+
+		// swap pieces and destroy the other piece, effectively replacing the other piece with this one
+		Square.SwapSquareContents(originalSquare, destinationSquare);
+		DestroyPiece(otherPiece);
+
+		SetPieceType(PieceType.Queen);
+		return true;
+	}
+
     private void AttemptPromotion(Square originalSquare, Square destinationSquare)
     {
         /*
@@ -160,7 +196,7 @@ public class Piece : MonoBehaviour
 
 	/*
 	 * set the type of a piece, and change attributes appropriately
-	*/
+	 */
 	public void SetPieceType(PieceType newPieceType)
 	{
 		this.pieceType = newPieceType;
