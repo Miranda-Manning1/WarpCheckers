@@ -243,13 +243,13 @@ public class Piece : MonoBehaviour
     private bool ReachedOppositeSide(Square originalSquare, Square destinationSquare)
     {
 
-        if (team == GameManager.BackwardTeam)
+        if (team != GameManager.BackwardTeam)
         {
             return IsOnOppositeSide(this, destinationSquare)
                    || (originalSquare.coordinates.y == Board.BoardLength.y - 2 && destinationSquare.coordinates.y == 0);
         }
 
-        if (team != GameManager.BackwardTeam)
+        if (team == GameManager.BackwardTeam)
         {
             return IsOnOppositeSide(this, destinationSquare)
                    || (originalSquare.coordinates.y == 1 && destinationSquare.coordinates.y == Board.BoardLength.y - 1);

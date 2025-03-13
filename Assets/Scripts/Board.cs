@@ -9,7 +9,10 @@ public class Board : MonoBehaviour
 
     public static Board Instance;
     public GameManager gameManager;
-    public static Vector2Int BoardLength = new Vector2Int(8, 8); // number of squares
+
+    public Vector2Int boardLength;
+    public static Vector2Int BoardLength = new Vector2Int(8, 8);
+    public int CheckerRowsPerSide = 3;
     public static Square[,] Squares;
     public static Square SelectedSquare;
 
@@ -32,7 +35,15 @@ public class Board : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-
+        BoardLength = boardLength;
+        CheckBoardDimensions();
+        
+        // partially help square size stay small enough - will likely need a rework later
+        if (squareSize * BoardLength.y * 31.5f > Screen.height)
+        {
+            squareSize = (Screen.height / (float) BoardLength.y) / 31.5f;
+        }
+        
 		List<Square> team0LastSquaresMoved = new List<Square> { };
 		List<Square> team1LastSquaresMoved = new List<Square> { };
 		LastSquaresMoved[0] = team0LastSquaresMoved;
@@ -44,10 +55,16 @@ public class Board : MonoBehaviour
         TemplateSquare.Instance.SetPiece(TemplatePiece.Instance);
     }
 
-    // Update is called once per frame
-    void Update()
+    /*
+     * ensures that the starting number of checkers per side fit the maximum values
+     */
+    private void CheckBoardDimensions()
     {
-
+        if (BoardLength.x < 0 || BoardLength.y < 0) BoardLength = new Vector2Int(0, 0);
+        if (CheckerRowsPerSide < 0) CheckerRowsPerSide = 0;
+        
+        int calculatedCheckerRowsPerSide = (BoardLength.y - 1) / 2;
+        if (calculatedCheckerRowsPerSide < CheckerRowsPerSide) CheckerRowsPerSide = calculatedCheckerRowsPerSide;
     }
 
     /*
@@ -101,7 +118,10 @@ public class Board : MonoBehaviour
                 Squares[x, y] = square;
 
                 count++;
-                if (count % BoardLength.x == 0) (squareColor1, squareColor2) = (squareColor2, squareColor1);
+                if (count % BoardLength.x == 0 && BoardLength.x % 2 == 0)
+                {
+                    (squareColor1, squareColor2) = (squareColor2, squareColor1);
+                }
             }
         }
     }
@@ -154,10 +174,15 @@ public class Board : MonoBehaviour
      */
     private void CreateCheckers()
     {
+        if (CheckerRowsPerSide == 0) return;
+        
         Piece templatePiece = TemplatePiece.Instance;
 
-        int[] startY = { 0, BoardLength.y - 3 };
-        int[] endY = { 3, BoardLength.y };
+        // Y position of the bottom-left-most checker on teams 0 and 1 respectively
+        int[] startY = { 0, BoardLength.y - CheckerRowsPerSide };
+
+        // ending Y position for the checkers being created on teams 0 and 1 respectively
+        int[] endY = { CheckerRowsPerSide, BoardLength.y };
 
         // create two teams of checkers
         int count = 0;

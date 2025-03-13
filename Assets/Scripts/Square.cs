@@ -283,7 +283,7 @@ public class Square : MonoBehaviour
          */
         Vector2Int absoluteCoordinates = new Vector2Int((
             originalSquare.coordinates.x + x + Board.BoardLength.x) % Board.BoardLength.x,
-            (originalSquare.coordinates.y + y + Board.BoardLength.x) % Board.BoardLength.x);
+            (originalSquare.coordinates.y + y + Board.BoardLength.y) % Board.BoardLength.y);
 
         return Square.GetSquareFromCoordinates(absoluteCoordinates.x, absoluteCoordinates.y);
     }
