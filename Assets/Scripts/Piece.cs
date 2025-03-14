@@ -178,6 +178,7 @@ public class Piece : MonoBehaviour
 		if (!destinationSquare.IsOccupied()) return false;
 		Piece otherPiece = destinationSquare.GetPiece();
 		if (otherPiece.pieceType != PieceType.King) return false;
+		if (this.pieceType != PieceType.King) return false;
 		if (otherPiece.team != this.team) return false;
 		if (!Square.IsDiagonallyAdjacent(originalSquare, destinationSquare)) return false;
 
