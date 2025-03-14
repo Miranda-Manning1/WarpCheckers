@@ -70,7 +70,7 @@ public class Square : MonoBehaviour
         if (!Board.SquareSelected() && !this.IsOccupied()) return;
         
         // clicking on a square that's already selected deselects it
-        if (Board.SquareSelected() && Board.SelectedSquare == this)
+        if (Board.SquareSelected() && Board.SelectedSquare == this && !GameManager.ChainCaptureRunning())
         {
             this.Deselect();
             return;

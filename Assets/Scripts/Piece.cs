@@ -127,8 +127,9 @@ public class Piece : MonoBehaviour
     public bool AttemptMove(Square originalSquare, Square destinationSquare)
     {
         
-        bool moveSuccessful = false;
-        bool avoidEndingTurn = false;
+        bool moveSuccessful = false; // did a move, and therefore a turn, finish after this click
+        bool avoidEndingTurn = false; // regardless of whether a move was finished this click, should the end of the turn be avoided
+		bool captureThisClick = false; // did this piece capture an enemy piece in this click?
 
         // failsafe: if no piece currently selected, or if already-selected square is clicked, end attempted movement
         if (!Board.SquareSelected() || originalSquare == destinationSquare) return false;
@@ -149,14 +150,14 @@ public class Piece : MonoBehaviour
 			&& AttemptQueenPromotion(originalSquare, destinationSquare)) moveSuccessful = true;
 
         // attempt a capture, which may lead into a chain capture
-        if (!moveSuccessful) AttemptCapture(originalSquare, destinationSquare);
+        if (!moveSuccessful && AttemptCapture(originalSquare, destinationSquare)) captureThisClick = true;
 
         // avoid ending the turn if there's an ongoing chain capture, or end it if a chain capture has finished
         if (GameManager.ChainCaptureRunning()) avoidEndingTurn = true;
         if (!moveSuccessful && !avoidEndingTurn && ChainCaptureSuccessful()) moveSuccessful = true;
         
         // did the piece move at all, from either a finished turn or a part of a chain capture
-        bool didMove = moveSuccessful || avoidEndingTurn;
+        bool didMove = moveSuccessful || captureThisClick;
 
         if (didMove)
         {
@@ -355,13 +356,13 @@ public class Piece : MonoBehaviour
     /*
      * runs a capture attempt and handles potential chain captures
      */
-    private void AttemptCapture(Square originalSquare, Square destinationSquare)
+    private bool AttemptCapture(Square originalSquare, Square destinationSquare)
     {
         // attempt a capture, then keep the chain going if possible. flag captureOccured = true if any happened
         bool captureOccured = AttemptSingleCapture(originalSquare, destinationSquare);
         
         // if capture attempt failed, don't continue to run the capture
-        if (!captureOccured) return;
+        if (!captureOccured) return false;
 
         /*
          * if turning this capture into a chain capture is possible:
@@ -371,11 +372,12 @@ public class Piece : MonoBehaviour
         { 
             GameManager.SetChainCaptureRunning(true);
             this.square.Select();
-            return;
+            return true;
         }
 
         GameManager.SetChainCaptureRunning(false);
         SetChainCaptureSuccessful(true);
+		return true;
     }
 
     /*
