@@ -88,21 +88,32 @@ public class Square : MonoBehaviour
 
         if (finishedMove)
         {
-            Board.SelectedSquare.Deselect();
-            GameManager.ClickedOnSquare = true;
-            currentPiece.SetChainCaptureSuccessful(false);
-            GameManager.SwitchPlayerTurn();
-            
+			FinishMove(currentPiece, this);
             return;
         }
 
         // if a chain capture is currently running, go to next frame
-        if (currentPiece != null && GameManager.ChainCaptureRunning()) return;
+        if (currentPiece != null && GameManager.ChainCaptureRunning()) {
+			return;
+		}
         
         // if no move done, just select a square
         if (this.IsOccupied() && this.GetPiece().team == GameManager.CurrentPlayerTurn())
             Select();
     }
+
+	/*
+	 * runs the processes for finishing a move/turn
+	 */
+	public static void FinishMove(Piece currentPiece, Square finalLocation) {
+		GameManager.SetEndTurnButtonEnabled(false);
+		Board.SquaresTraveledThisTurn.Add(finalLocation);
+		Board.SelectedSquare.Deselect();
+		GameManager.ClickedOnSquare = true;
+		currentPiece.SetChainCaptureSuccessful(false);
+		GameManager.SwitchPlayerTurn();
+		return;
+	}
     
     /*
      * set highlighted or un-highlighted to every square in a List

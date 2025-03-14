@@ -164,7 +164,9 @@ public class Piece : MonoBehaviour
             Board.SquaresTraveledThisTurn.Add(originalSquare);
             AttemptPromotion(originalSquare, destinationSquare);
         }
-		if (moveSuccessful) Board.SquaresTraveledThisTurn.Add(destinationSquare);
+
+		// if there's an ongoing chain capture, enable the End Turn button
+		if (GameManager.ChainCaptureRunning()) GameManager.SetEndTurnButtonEnabled(true);
         
         return moveSuccessful && !avoidEndingTurn;
     }
