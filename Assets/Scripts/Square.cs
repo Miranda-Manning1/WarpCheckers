@@ -32,8 +32,10 @@ public class Square : MonoBehaviour
         Board.SelectedSquare = this;
         _isSelected = true;
 
+        // if queen selected, enable cycle button
         if (this.GetPiece().pieceType == Piece.PieceType.Queen && !GameManager.ChainCaptureRunning())
         {
+            CycleButton.SetCycleEnabled(false);
             GameManager.SetCycleButtonEnabled(true);
         }
     }
@@ -47,7 +49,10 @@ public class Square : MonoBehaviour
         Board.SelectedSquare = null;
         SetHighlighted(this, false);
         
+        // when a piece is deselected, make sure cycle button is turned off
+        CycleButton.SetCycleEnabled(false);
         GameManager.SetCycleButtonEnabled(false);
+        
     }
 
     private void OnMouseOver()
