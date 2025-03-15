@@ -1,4 +1,7 @@
+using System;
 using System.Linq;
+using NUnit.Framework.Constraints;
+using Unity.VisualScripting.Dependencies.NCalc;
 using UnityEngine;
 using System.Collections.Generic;
 
@@ -44,14 +47,6 @@ public class Piece : MonoBehaviour
         SnapToSquare();
 		this.transform.SetParent(this.square.transform);
         square.SetPiece(this);
-    }
-
-    /*
-     * Calculates whether a capture from one square to another is valid
-     */
-    public bool IsValidCapture(Square originalSquare, Square destinationSquare)
-    {
-        return false;
     }
 
 	 /*
@@ -206,12 +201,27 @@ public class Piece : MonoBehaviour
 		if (otherPiece.team != this.team) return false;
 		if (!Square.IsDiagonallyAdjacent(originalSquare, destinationSquare)) return false;
 
+		PromoteToQueen(originalSquare, destinationSquare);
+		return true;
+	}
+
+	/*
+	 * Given two squares, stack the King on the first square onto the King on the second.
+	 * Assumes that all criteria for queen promotion are met
+	 */
+	private void PromoteToQueen(Square originalSquare, Square destinationSquare)
+	{
+		Piece otherPiece = destinationSquare.GetPiece();
+		
+		if (otherPiece == null) throw new Exception(
+			"Ran Piece.PromoteToQueen() when destinationSquare's piece was null"
+		);
+		
 		// swap pieces and destroy the other piece, effectively replacing the other piece with this one
 		Square.SwapSquareContents(originalSquare, destinationSquare);
 		DestroyPiece(otherPiece);
 
 		SetPieceType(PieceType.Queen);
-		return true;
 	}
 
     private void AttemptPromotion(Square originalSquare, Square destinationSquare)
@@ -571,8 +581,9 @@ public class Piece : MonoBehaviour
      */
     private bool IsValidCaptureDestination(Square originalSquare, Square destinationSquare)
     {
-        // can't move onto an existing piece
-        if (destinationSquare.IsOccupied()) return false;
+        // can't move onto an existing piece, unless they're both Kings
+        if (destinationSquare.IsOccupied()
+            && !AreSamePieceTypeOnSameTeam(destinationSquare.GetPiece(), PieceType.King)) return false;
         
         // can only move forwards
         if (!FollowsDirectionRule(this, originalSquare, destinationSquare)) return false;
@@ -581,6 +592,14 @@ public class Piece : MonoBehaviour
         if (!Square.IsDiagonal(originalSquare, destinationSquare, 2)) return false;
 
         return true;
+    }
+
+    /*
+     * are this piece and a given piece both the same piece type on the same team
+     */
+    private bool AreSamePieceTypeOnSameTeam(Piece piece, PieceType checkPieceType)
+    {
+	    return this.team == piece.team && this.pieceType == checkPieceType && piece.pieceType == checkPieceType;
     }
 
     /*
@@ -649,8 +668,17 @@ public class Piece : MonoBehaviour
         
         Piece capturePiece = Square.PieceBetween(originalSquare, destinationSquare);
         if (!IsValidCapturePiece(capturePiece)) return false;
+
+        // Either jump onto a King of the same team, creating a Queen, or do a regular capture
+        if (destinationSquare.IsOccupied())
+        {
+	        PromoteToQueen(originalSquare, destinationSquare);
+        }
+        else
+        {
+	        SetSquare(destinationSquare);
+        }
         
-        SetSquare(destinationSquare);
         Piece.CapturePiece(capturePiece);
         
         return true;
