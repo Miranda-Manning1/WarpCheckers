@@ -9,6 +9,7 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance;
     public Board board;
 	public static EndTurnButton endTurnButton;
+    public static CycleButton cycleButton;
     
     public static bool ClickedOnSquare = false;
 
@@ -34,6 +35,7 @@ public class GameManager : MonoBehaviour
     {
         board = Board.Instance;
 		endTurnButton = gameObject.transform.GetChild(2).GetComponent<EndTurnButton>();
+		cycleButton = gameObject.transform.GetChild(3).GetComponent<CycleButton>();
     }
 
     // Update is called once per frame
@@ -54,6 +56,10 @@ public class GameManager : MonoBehaviour
 
 	public static void SetEndTurnButtonEnabled(bool enabled) {
 		endTurnButton.gameObject.SetActive(enabled);
+	}
+
+	public static void SetCycleButtonEnabled(bool enabled) {
+		cycleButton.gameObject.SetActive(enabled);
 	}
 
 	public static int GetOppositeTeam(int currentTurn) {

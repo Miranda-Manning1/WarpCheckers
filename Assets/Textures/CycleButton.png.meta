@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 16b83a654e9ff4ae6aa5b5fcbd830969
+guid: 80d2f2267a6f543dd9e95df8adb3637d
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 6606915467454355779
-    second: End Turn_0
+      213: -7850443195078274118
+    second: CycleButton_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,7 +100,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: End Turn_0
+      name: CycleButton_0
       rect:
         serializedVersion: 2
         x: 0
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 34996aadc9a70bb50800000000000000
-      internalID: 6606915467454355779
+      spriteID: ab31afbe18f9d0390800000000000000
+      internalID: -7850443195078274118
       vertices: []
       indices: 
       edges: []

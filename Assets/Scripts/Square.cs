@@ -23,7 +23,7 @@ public class Square : MonoBehaviour
     }
 
     /*
-     * Upon selection, attempt a move and highlight
+     * Upon selection, highlight the square
      */
     public void Select()
     {
@@ -31,6 +31,11 @@ public class Square : MonoBehaviour
         SetHighlighted(this, true);
         Board.SelectedSquare = this;
         _isSelected = true;
+
+        if (this.GetPiece().pieceType == Piece.PieceType.Queen && !GameManager.ChainCaptureRunning())
+        {
+            GameManager.SetCycleButtonEnabled(true);
+        }
     }
 
     /*
@@ -41,6 +46,8 @@ public class Square : MonoBehaviour
         _isSelected = false;
         Board.SelectedSquare = null;
         SetHighlighted(this, false);
+        
+        GameManager.SetCycleButtonEnabled(false);
     }
 
     private void OnMouseOver()
@@ -63,7 +70,6 @@ public class Square : MonoBehaviour
      */
     private void OnMouseUp()
     {
-        Debug.Log(this.coordinates);
         GameManager.ClickedOnSquare = true;
         
         // clicking on an empty square when no piece is selected does nothing
@@ -109,8 +115,8 @@ public class Square : MonoBehaviour
 		GameManager.SetEndTurnButtonEnabled(false);
 		Board.SquaresTraveledThisTurn.Add(finalLocation);
 		Board.SelectedSquare.Deselect();
-		GameManager.ClickedOnSquare = true;
 		currentPiece.SetChainCaptureSuccessful(false);
+        GameManager.SetChainCaptureRunning(false);
 		GameManager.SwitchPlayerTurn();
 		return;
 	}
@@ -317,11 +323,3 @@ public class Square : MonoBehaviour
         square2.GetPiece().SnapToSquare();
     }
 }
-
-/*
- *         Square tempSquare = this.square;
-        this.square.SetPiece(destinationSquare.GetPiece());
-        destinationSquare.SetPiece(this);
-        this.square = destinationSquare;
-        destinationSquare.GetPiece().square = tempSquare;
- */
