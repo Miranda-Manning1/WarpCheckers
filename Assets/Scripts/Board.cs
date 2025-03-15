@@ -19,6 +19,8 @@ public class Board : MonoBehaviour
 	public static List<Square>[] LastSquaresMoved = new List<Square>[2];
 	public static List<Square> SquaresTraveledThisTurn = new List<Square> { };
 
+	public static List<Square> CycleSquares = new List<Square> { };
+
     private float squareSize = 2f;
     
     public enum RelativeSide

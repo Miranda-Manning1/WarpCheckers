@@ -5,12 +5,14 @@ public class CycleButton : MonoBehaviour
 	private static SpriteRenderer cycleButtonSprite;
 	private static SpriteRenderer altSprite;
 
-	public static bool CycleEnabled = false;
+	private static bool cycleEnabled = false;
+
+	public static Piece Queen;
 
 	void OnMouseUp()
 	{
 		GameManager.ClickedOnSquare = true;
-		SetCycleEnabled(!CycleEnabled);
+		SetCycleEnabled(!cycleEnabled);
 	}
 
     void Start()
@@ -26,9 +28,25 @@ public class CycleButton : MonoBehaviour
 	public static void SetCycleEnabled(bool enabled)
 	{
 		// switch button sprite if enabled status changes
-		if (CycleEnabled != enabled)
+		if (cycleEnabled != enabled)
 			(cycleButtonSprite.sprite, altSprite.sprite) = (altSprite.sprite, cycleButtonSprite.sprite);
 
-		CycleEnabled = enabled;
+		cycleEnabled = enabled;
+
+		if (cycleEnabled) {
+			Queen = Board.SelectedSquare.GetPiece();
+			Board.CycleSquares.Add(Queen.square);
+		} else {
+			Queen = null;
+			Board.CycleSquares.Clear();
+		}
+	}
+
+	/*
+	 * return whether cycling is active or not
+	 */
+	public static bool CycleEnabled()
+	{
+		return cycleEnabled;
 	}
 }

@@ -13,8 +13,6 @@ public class Square : MonoBehaviour
     private Piece _occupant;
     public Color originalColor;
     public Vector2Int coordinates;
-
-    private bool _isSelected = false;
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -30,8 +28,7 @@ public class Square : MonoBehaviour
         if (Board.SquareSelected()) Board.SelectedSquare.Deselect();
         SetHighlighted(this, true);
         Board.SelectedSquare = this;
-        _isSelected = true;
-
+        
         // if queen selected, enable cycle button
         if (this.GetPiece().pieceType == Piece.PieceType.Queen && !GameManager.ChainCaptureRunning())
         {
@@ -45,7 +42,6 @@ public class Square : MonoBehaviour
      */
     public void Deselect()
     {
-        _isSelected = false;
         Board.SelectedSquare = null;
         SetHighlighted(this, false);
         
@@ -59,7 +55,7 @@ public class Square : MonoBehaviour
     {
         if (Input.GetMouseButtonUp(1) && GameManager.DeveloperMode && IsOccupied())
         {
-            Destroy(this.GetPiece().gameObject);
+            Piece.DestroyPiece(this.GetPiece());
         }
 
 		// press K on a piece when Developer Mode is active to turn it into a King
@@ -81,7 +77,7 @@ public class Square : MonoBehaviour
         if (!Board.SquareSelected() && !this.IsOccupied()) return;
         
         // clicking on a square that's already selected deselects it
-        if (Board.SquareSelected() && Board.SelectedSquare == this && !GameManager.ChainCaptureRunning())
+        if (Board.SquareSelected() && Board.SelectedSquare == this && !GameManager.ChainCaptureRunning() && !GameManager.CycleRunning())
         {
             this.Deselect();
             return;
@@ -104,7 +100,7 @@ public class Square : MonoBehaviour
         }
 
         // if a chain capture is currently running, go to next frame
-        if (currentPiece != null && GameManager.ChainCaptureRunning()) {
+        if (GameManager.ChainCaptureRunning() || GameManager.CycleRunning()) {
 			return;
 		}
         
@@ -121,7 +117,9 @@ public class Square : MonoBehaviour
 		Board.SquaresTraveledThisTurn.Add(finalLocation);
 		Board.SelectedSquare.Deselect();
 		currentPiece.SetChainCaptureSuccessful(false);
+        currentPiece.SetCycleSuccessful(false);
         GameManager.SetChainCaptureRunning(false);
+        GameManager.SetCycleRunning(false);
 		GameManager.SwitchPlayerTurn();
 		return;
 	}
@@ -314,17 +312,129 @@ public class Square : MonoBehaviour
      * swap the contents of any two squares
      */
     public static void SwapSquareContents(Square square1, Square square2)
-                                                               {
+    {
         Square tempSquare = square1;
         Piece tempPiece = square1.GetPiece();
         square1.SetPiece(square2.GetPiece());
         square2.SetPiece(tempPiece);
-        square1.GetPiece().square = square1;
-        square2.GetPiece().square = square2;
+        if (square1.GetPiece() != null) square1.GetPiece().square = square1;
+        if (square2.GetPiece() != null) square2.GetPiece().square = square2;
         
-		square1.GetPiece().transform.SetParent(square1.transform);
-		square2.GetPiece().transform.SetParent(square2.transform);
-        square1.GetPiece().SnapToSquare();
-        square2.GetPiece().SnapToSquare();
+		square1.GetPiece()?.transform.SetParent(square1.transform);
+		square2.GetPiece()?.transform.SetParent(square2.transform);
+        square1.GetPiece()?.SnapToSquare();
+        square2.GetPiece()?.SnapToSquare();
+    }
+
+    /*
+     * for a List of Squares, can every square be contained in a 2x2 box (warping accomodated)
+     */
+    public static bool SquaresContainedIn2x2Box(List<Square> squares)
+    {
+        for (int i = 0; i < squares.Count; i++)
+        {
+            for (int j = i + 1; j < squares.Count; j++)  // avoid duplicate comparisons
+            {
+                if (!Square.IsOrthogonallyAdjacent(squares[i], squares[j]) &&
+                    !Square.IsDiagonallyAdjacent(squares[i], squares[j]))
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /*
+     * returns true if 2–3 given squares are valid for cycling so far
+     * this method assumes a 90º cycle, and thus that a list of 2 squares is a cycle-in-progress
+     */
+    public static bool SquaresAreCycleable(List<Square> squares)
+    {
+        int count = squares.Count;
+        if (count == 1) return true;
+        if (!SquaresContainedIn2x2Box(squares)) return false;
+        
+        // for two squares in-progress, they just have to be side-by-side
+        if (count == 2 && IsOrthogonallyAdjacent(squares[0], squares[1]))
+        {
+            return true;
+        } else if (count == 2)
+        {
+            return false;
+        }
+        
+        // for three squares, the second has to be orthogonal to the first, and the third must be diagonal to the first
+        if (count == 3
+            && IsOrthogonallyAdjacent(squares[0], squares[1])
+            && IsDiagonallyAdjacent(squares[0], squares[2]))
+        {
+            return true;
+        } else if (count == 3)
+        {
+            return false;
+        }
+        
+        throw new Exception(
+            "Square.SquaresAreCycleable() ran with Square list count of " + squares.Count
+        );
+    }
+
+    /*
+     * given a List of 3 Squares that can fit inside a 2x2 box, return the 4th missing Square
+     */
+    public static Square GetMissing2x2Corner(List<Square> squares)
+    {
+        List<int> xList = new List<int>();
+        List<int> yList = new List<int>();
+
+        // get both x values and both y values
+        for (int i = 0; i < squares.Count; i++)
+        {
+            int x = squares[i].coordinates.x;
+            int y = squares[i].coordinates.y;
+            if (!xList.Contains(x)) xList.Add(x);
+            if (!yList.Contains(y)) yList.Add(y);
+        }
+
+        // check each of the 4 combinations of coordinates to find which one is missing from the List
+        for (int i = 0; i < xList.Count; i++)
+        {
+            for (int j = 0; j < yList.Count; j++)
+            {
+                Square squareToCheck = GetSquareFromCoordinates(xList[i], yList[j]);
+                if (!squares.Contains(squareToCheck)) return squareToCheck;
+            }
+        }
+        
+        throw new Exception(
+            "Couldn't find missing Square in Square.GetMissing2x2Corner()."
+        );
+    }
+    
+    /*
+     * cycle the locations of a List of Squares (may create error with too small a List)
+     */
+    public static void CycleSquareContents(List<Square> squares)
+    {
+        for (int i = squares.Count - 1; i > 0; i--)
+        {
+            Square.SwapSquareContents(squares[i], squares[i - 1]);
+        }
+    }
+
+    /*
+     * returns the number of pieces within a given List of Squares
+     */
+    public static int PiecesInSquareList(List<Square> squares)
+    {
+        int count = 0;
+        for (int i = 0; i < squares.Count; i++)
+        {
+            if (squares[i].IsOccupied()) count++;
+        }
+
+        return count;
     }
 }

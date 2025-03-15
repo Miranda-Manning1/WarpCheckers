@@ -1,5 +1,6 @@
 using System.Linq;
 using UnityEngine;
+using System.Collections.Generic;
 
 public class Piece : MonoBehaviour
 {
@@ -27,8 +28,8 @@ public class Piece : MonoBehaviour
     
     public SpriteRenderer spriteRenderer;
     
-    private bool _chainCaptureRunning = false;
     private bool _chainCaptureSuccessful = false;
+	private bool _cycleSuccessful = false;
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -120,6 +121,16 @@ public class Piece : MonoBehaviour
     {
         _chainCaptureSuccessful = wasSuccessful;
     }
+
+    private bool CycleSuccessful()
+    {
+        return _chainCaptureSuccessful;
+    }
+
+    public void SetCycleSuccessful(bool wasSuccessful)
+    {
+        _cycleSuccessful = wasSuccessful;
+    }
     
     /*
      * attempts to move a checker from point a to point b, returning whether it can do it
@@ -130,31 +141,42 @@ public class Piece : MonoBehaviour
         bool moveSuccessful = false; // did a move, and therefore a turn, finish after this click
         bool avoidEndingTurn = false; // regardless of whether a move was finished this click, should the end of the turn be avoided
 		bool captureThisClick = false; // did this piece capture an enemy piece in this click?
+		bool cycleEnabled = CycleButton.CycleEnabled();
 
         // failsafe: if no piece currently selected, or if already-selected square is clicked, end attempted movement
         if (!Board.SquareSelected() || originalSquare == destinationSquare) return false;
 
         // attempt basic movement; set moveSuccessful to true if it's successful
         if (!GameManager.ChainCaptureRunning()
-            && AttemptBasicMovement(originalSquare, destinationSquare))
+            && !cycleEnabled
+			&& AttemptBasicMovement(originalSquare, destinationSquare))
             moveSuccessful = true;
 
         // attempt special moves; set moveSuccessful to true if any of them are successful
         if (!GameManager.ChainCaptureRunning()
             && !moveSuccessful
-            && AttemptSpecialMoves(originalSquare, destinationSquare)) moveSuccessful = true;
+            && AttemptSpecialMoves(originalSquare, destinationSquare, cycleEnabled)) moveSuccessful = true;
 
 		// attempt king-to-queen promotion
 		if(!GameManager.ChainCaptureRunning()
+			&& !GameManager.CycleRunning()
+			&& !cycleEnabled
 			&& !moveSuccessful
 			&& AttemptQueenPromotion(originalSquare, destinationSquare)) moveSuccessful = true;
 
         // attempt a capture, which may lead into a chain capture
-        if (!moveSuccessful && AttemptCapture(originalSquare, destinationSquare)) captureThisClick = true;
+        if (!moveSuccessful
+			&& !GameManager.CycleRunning()
+			&& !cycleEnabled
+			&& AttemptCapture(originalSquare, destinationSquare)) captureThisClick = true;
 
-        // avoid ending the turn if there's an ongoing chain capture, or end it if a chain capture has finished
-        if (GameManager.ChainCaptureRunning()) avoidEndingTurn = true;
-        if (!moveSuccessful && !avoidEndingTurn && ChainCaptureSuccessful()) moveSuccessful = true;
+        /*
+		 * avoid ending the turn if there's an ongoing chain capture or cycle
+		 * or end it if a chain capture or cycle has finished
+		 */
+        if (GameManager.ChainCaptureRunning() || GameManager.CycleRunning()) avoidEndingTurn = true;
+        if (!moveSuccessful && !avoidEndingTurn
+			&& (ChainCaptureSuccessful() || CycleSuccessful())) moveSuccessful = true;
         
         // did the piece move at all, from either a finished turn or a part of a chain capture
         bool didMove = moveSuccessful || captureThisClick;
@@ -204,7 +226,7 @@ public class Piece : MonoBehaviour
     }
 
 	/*
-	 * set the type of a piece, and change attributes appropriately
+	 * set the type of piece, and change attributes appropriately
 	 */
 	public void SetPieceType(PieceType newPieceType)
 	{
@@ -315,12 +337,7 @@ public class Piece : MonoBehaviour
         Piece otherPiece = otherPieceSquare.GetPiece();
         
         // cannot swap if it would warp a piece to its opposite side, resulting in promotion
-        if (
-            otherPiece.pieceType == PieceType.Checker
-            && IsOnOriginalSide(otherPiece, otherPieceSquare)
-            && IsOnOppositeSide(otherPiece, thisPieceSquare)
-            )
-            return false;
+        if (WouldBeInstaPromoted(otherPiece, otherPieceSquare, thisPieceSquare)) return false;
         
         Square.SwapSquareContents(thisPieceSquare, otherPieceSquare);
         
@@ -330,11 +347,177 @@ public class Piece : MonoBehaviour
     /*
      * attempts every special move
      */
-    private bool AttemptSpecialMoves(Square originalSquare, Square destinationSquare)
+    private bool AttemptSpecialMoves(Square originalSquare, Square destinationSquare, bool cycleEnabled)
     {
-        if (AttemptSwap(originalSquare, destinationSquare)) return true;
+        if (!cycleEnabled && AttemptSwap(originalSquare, destinationSquare)) return true;
+		if (cycleEnabled && AttemptCycle(originalSquare, destinationSquare)) return true;
         return false;
     }
+
+	private bool AttemptCycle(Square originalSquare, Square destinationSquare)
+	{
+		if (Board.CycleSquares.Contains(destinationSquare))
+		{
+			FailedCycleCleanup();
+			return false;
+		}
+		
+		Board.CycleSquares.Add(destinationSquare);
+		int size = Board.CycleSquares.Count;
+
+		// for a 180º cycle, only the Queen and a diagonally adjacent square must be clicked
+		if (size == 2 && Square.IsDiagonallyAdjacent(originalSquare, destinationSquare)) {
+
+			// fetch the missing Squares and add them to the cycle list
+			Square newSquare1 = Square.GetSquareFromCoordinates(this.square.coordinates.x,
+				destinationSquare.coordinates.y);
+			Square newSquare2 = Square.GetSquareFromCoordinates(destinationSquare.coordinates.x,
+				this.square.coordinates.y);
+			
+			Board.CycleSquares.Add(newSquare1);
+			Board.CycleSquares.Add(newSquare2);
+
+			// if there's no piece in there besides a Queen
+			if (Square.PiecesInSquareList(Board.CycleSquares) < 2) {
+				FailedCycleCleanup();
+				return false;
+			}
+
+			// cycle cannot result in an insta-promotion
+			if ((destinationSquare.IsOccupied() &&
+			     WouldBeInstaPromoted(destinationSquare.GetPiece(), destinationSquare, originalSquare))
+			    || (newSquare1.IsOccupied() && WouldBeInstaPromoted(newSquare1.GetPiece(), newSquare1, newSquare2))
+			    || newSquare2.IsOccupied() && WouldBeInstaPromoted(newSquare2.GetPiece(), newSquare2, newSquare1))
+				return FailedCycleCleanup();
+			
+			// make sure the two previously missing squares are highlighted upon turn switch
+			Board.SquaresTraveledThisTurn.Add(newSquare1);
+			Board.SquaresTraveledThisTurn.Add(newSquare2);
+
+			// make the 180º cycle
+			Square.SwapSquareContents(originalSquare, destinationSquare);
+			Square.SwapSquareContents(newSquare1, newSquare2);
+
+			return SuccessfulCycleCleanup();
+		}
+		
+		// 90º cycle
+		if (Square.SquaresAreCycleable(Board.CycleSquares)) {
+
+			// if only 2/3 squares selected: set the cycle running flag, highlight the new square, and move on to the next frame
+			if (size <= 2) {
+				GameManager.SetCycleRunning(true);
+				Board.SquaresTraveledThisTurn.Add(destinationSquare);
+				Square.SetHighlighted(destinationSquare, true);
+				return false;
+			}
+
+			// 3rd square selected
+			if (size == 3) {
+				// fetch the missing Square
+				Square missingSquare = Square.GetMissing2x2Corner(Board.CycleSquares);
+				Board.CycleSquares.Add(missingSquare);
+
+				// if there's no piece in there besides a Queen
+				if (Square.PiecesInSquareList(Board.CycleSquares) < 2) return FailedCycleCleanup();
+
+				// run the cycle, check for insta-promotions, and undo if any occured
+				if (!CycleAndCheckForInstaPromotions()) return FailedCycleCleanup();
+				
+				// make sure the previously missing square is highlighted upon turn switch
+				Board.SquaresTraveledThisTurn.Add(missingSquare);
+				return SuccessfulCycleCleanup();
+			}
+		}
+
+		return FailedCycleCleanup();
+	}
+
+	/*
+	 * cycle Board.CycleSquares, then undo if it's found to cause an insta-promotion
+	 */
+	private bool CycleAndCheckForInstaPromotions()
+	{
+		// make a copy of the list of squares, and a list of all those squares' pieces
+		List<Square> originalSquares = new List<Square> { };
+		List<Piece> originalPieces = new List<Piece> { };
+		for (int i = 1; i < Board.CycleSquares.Count; i++)
+		{
+			Square currentSquare = Board.CycleSquares[i];
+			originalSquares.Add(currentSquare);
+			originalPieces.Add(null);
+			if (currentSquare.IsOccupied()) originalPieces[i - 1] = currentSquare.GetPiece();
+		}
+		
+		// cycle the contents
+		Square.CycleSquareContents(Board.CycleSquares);
+
+		// check each square for a piece that may have been insta-promoted. if any found, undo cycle
+		for (int i = 0; i < originalPieces.Count; i++)
+		{
+			if (originalPieces[i] != null &&
+			    WouldBeInstaPromoted(originalPieces[i], originalSquares[i], originalPieces[i].square))
+			{
+				Square.CycleSquareContents(Board.CycleSquares);
+				Square.CycleSquareContents(Board.CycleSquares);
+				Square.CycleSquareContents(Board.CycleSquares);
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/*
+	 * code to run after a cycle is successfully executed
+	 * this will always return true - this is so "return SuccessfulCycleCleanup()" can run the code, then return true
+	 */
+	private bool SuccessfulCycleCleanup()
+	{
+		Board.CycleSquares.Clear();
+		SetCycleSuccessful(true);
+		GameManager.SetCycleRunning(false);
+
+		return true;
+	}
+
+	/*
+	 * code to run when an attempted cycle fails
+	 * this will always return false - this is so "return FailedCycleCleanup()" can run the code, then return false
+	 */
+	private bool FailedCycleCleanup()
+	{
+		// un-highlight every cycle square except the initial Queen
+		for (int i = 1; i < Board.CycleSquares.Count; i++)
+		{
+			Square squareToUnHighlight = Board.CycleSquares[i];
+
+			// only un-highlight the square if it wasn't a square moved in the opponent's last turn
+			if (!Board.LastSquaresMoved[GameManager.GetOppositeTeam(this.team)].Contains(squareToUnHighlight))
+				Square.SetHighlighted(squareToUnHighlight, false);
+		}
+
+		GameManager.SetCycleRunning(false);
+		Board.SquaresTraveledThisTurn.Clear();
+		Board.CycleSquares.Clear();
+		Board.CycleSquares.Add(this.square);
+
+		return false;
+	}
+	
+	/*
+	 * would a particular piece move from its original side to its opposite side, resulting in an instant promotion
+	 */
+	private bool WouldBeInstaPromoted(Piece piece, Square originalSquare, Square destinationSquare)
+	{
+		if (
+			piece.pieceType == PieceType.Checker
+			&& IsOnOriginalSide(piece, originalSquare)
+			&& IsOnOppositeSide(piece, destinationSquare)
+		) return true;
+		
+		return false;
+	}
 
     /*
      * attempts a basic movement

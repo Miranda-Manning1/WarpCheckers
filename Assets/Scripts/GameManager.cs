@@ -16,6 +16,7 @@ public class GameManager : MonoBehaviour
     private static int _playerTurn = 0;
     private static bool _boardFlipped = false;
     private static bool _chainCaptureRunning = false;
+	private static bool _cycleRunning = false;
 
     public static bool DeveloperMode = false;
     private static bool flipBoard = true;
@@ -121,5 +122,18 @@ public class GameManager : MonoBehaviour
     public static void SetChainCaptureRunning(bool isRunning)
     {
         _chainCaptureRunning = isRunning;
+    }
+
+    /*
+     * Returns whether there is a cycle currently running.
+     */
+    public static bool CycleRunning()
+    {
+        return _cycleRunning;
+    }
+    
+    public static void SetCycleRunning(bool isRunning)
+    {
+        _cycleRunning = isRunning;
     }
 }
