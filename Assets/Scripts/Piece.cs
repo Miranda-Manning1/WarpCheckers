@@ -11,6 +11,10 @@ public class Piece : MonoBehaviour
 	public GameManager gameManager;
     public SpriteRenderer pieceSprite;
     public SpriteRenderer extraSprite;
+
+    public static Sprite CheckerSprite;
+    public static Sprite KingSprite;
+    public static Sprite QueenSprite;
     
     public Square square;
 
@@ -33,6 +37,13 @@ public class Piece : MonoBehaviour
     
     private bool _chainCaptureSuccessful = false;
 	private bool _cycleSuccessful = false;
+
+	void Awake()
+	{
+		CheckerSprite = Resources.Load<Sprite>("Checker");
+		KingSprite = Resources.Load<Sprite>("King");
+		QueenSprite = Resources.Load<Sprite>("Queen");
+	}
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -67,7 +78,7 @@ public class Piece : MonoBehaviour
          * so to prevent issues for the rest of this frame this flag is changed now
          */
         piece.square.SetPiece(null);
-        
+
         Destroy(piece.gameObject);
 	}
     
@@ -255,7 +266,7 @@ public class Piece : MonoBehaviour
 		if (newPieceType == PieceType.King) {
         	directionless = true;
         	canSwap = true;
-			extraSprite.sprite = gameManager.spriteArray[1];
+			extraSprite.sprite = KingSprite;
 			extraSprite.color = Color.red;
         	extraSprite.enabled = true;
 			return;
@@ -266,7 +277,7 @@ public class Piece : MonoBehaviour
 			directionless = true;
 			canSwap = true;
 			canCycle = true;
-			extraSprite.sprite = gameManager.spriteArray[2];
+			extraSprite.sprite = QueenSprite;
 			extraSprite.color = Color.red;
 			extraSprite.enabled = true;
 			return;
@@ -690,5 +701,11 @@ public class Piece : MonoBehaviour
     public void SnapToSquare()
     {
         this.transform.position = this.square.transform.position;
+    }
+
+    public void SwitchTeam()
+    {
+	    team = GameManager.GetOppositeTeam(team);
+	    pieceSprite.color = GameManager.TeamColors[team];
     }
 }

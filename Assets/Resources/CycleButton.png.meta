@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 6e6813233d2cf4fb6827a9c5c4cebf45
+guid: 80d2f2267a6f543dd9e95df8adb3637d
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 6255666757506584309
-    second: EndTurnButton_0
+      213: -7850443195078274118
+    second: CycleButton_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -96,11 +96,24 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: EndTurnButton_0
+      name: CycleButton_0
       rect:
         serializedVersion: 2
         x: 0
@@ -115,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 5fe4662a5c790d650800000000000000
-      internalID: 6255666757506584309
+      spriteID: ab31afbe18f9d0390800000000000000
+      internalID: -7850443195078274118
       vertices: []
       indices: 
       edges: []
@@ -134,7 +147,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      CycleButton_0: -7850443195078274118
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

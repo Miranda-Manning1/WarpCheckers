@@ -412,8 +412,8 @@ Transform:
   m_GameObject: {fileID: 772723094}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -12.5, y: 0, z: 0}
-  m_LocalScale: {x: 0.645525, y: 0.645525, z: 0.63648766}
+  m_LocalPosition: {x: -11.79, y: 0, z: 0}
+  m_LocalScale: {x: 0.45716077, y: 0.45716077, z: 0.45076054}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1541218653}
@@ -904,10 +904,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   board: {fileID: 0}
-  spriteArray:
-  - {fileID: -332773744469899394, guid: a0b1ee86fb87d6a4caa5f8e36ddf74cd, type: 3}
-  - {fileID: -1724822148711148119, guid: baf2700ea64d5f54c93bbc99521aa93e, type: 3}
-  - {fileID: 6851498383279292439, guid: 5c74a8edc9d22426b88ef822c73139d6, type: 3}
 --- !u!4 &1069392533
 Transform:
   m_ObjectHideFlags: 0
@@ -1042,8 +1038,8 @@ Transform:
   m_GameObject: {fileID: 1366374230}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -12.5, y: 0, z: 0}
-  m_LocalScale: {x: 0.645525, y: 0.645525, z: 0.63648766}
+  m_LocalPosition: {x: -11.79, y: 0, z: 0}
+  m_LocalScale: {x: 0.45716077, y: 0.45716077, z: 0.45076054}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1069392533}
@@ -1492,7 +1488,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gameManager: {fileID: 1069392532}
   boardLength: {x: 8, y: 8}
-  CheckerRowsPerSide: 3
 --- !u!4 &2002532165
 Transform:
   m_ObjectHideFlags: 0
