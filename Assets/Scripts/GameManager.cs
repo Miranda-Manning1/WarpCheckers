@@ -5,11 +5,12 @@ using System.Collections.Generic;
 
 public class GameManager : MonoBehaviour
 {
-    
+    private SpriteRenderer _devModeMarker;
+    private SpriteRenderer _boardFlipMarker;
+
     public static GameManager Instance;
-    public Board board;
-	public static EndTurnButton EndTurnButton;
-    public static CycleButton CycleButton;
+    private static EndTurnButton _endTurnButton;
+    private static CycleButton _cycleButton;
     
     public static bool ClickedOnSquare = false;
 
@@ -19,7 +20,7 @@ public class GameManager : MonoBehaviour
 	private static bool _cycleRunning = false;
 
     public static bool DeveloperMode = false;
-    private static bool FlipBoard = true;
+    private static bool _flipBoard = true;
     public static int BackwardTeam = 1;
     
 	public static Color[] TeamColors = new[] { Color.white, Color.cyan };
@@ -30,35 +31,36 @@ public class GameManager : MonoBehaviour
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    private void Start()
     {
-	    board = Board.Instance;
-		EndTurnButton = gameObject.transform.GetChild(2).GetComponent<EndTurnButton>();
-		CycleButton = gameObject.transform.GetChild(3).GetComponent<CycleButton>();
+        _devModeMarker = gameObject.transform.GetChild(0).GetComponent<SpriteRenderer>();
+        _boardFlipMarker = gameObject.transform.GetChild(1).GetComponent<SpriteRenderer>();
+        _endTurnButton = gameObject.transform.GetChild(2).GetComponent<EndTurnButton>();
+        _cycleButton = gameObject.transform.GetChild(3).GetComponent<CycleButton>();
     }
 
     // Update is called once per frame
-    void Update()
+    private void Update()
     {
         if (Input.GetKeyDown(KeyCode.D))
         {
             DeveloperMode = !DeveloperMode;
-            gameObject.transform.GetChild(0).GetComponent<SpriteRenderer>().enabled = DeveloperMode;
+            _devModeMarker.enabled = DeveloperMode;
         }
 
         if (DeveloperMode && Input.GetKeyDown(KeyCode.F))
         {
-            FlipBoard = !FlipBoard;
-            gameObject.transform.GetChild(1).GetComponent<SpriteRenderer>().enabled = !FlipBoard;
+            _flipBoard = !_flipBoard;
+            _boardFlipMarker.enabled = !_flipBoard;
         }
     }
 
 	public static void SetEndTurnButtonEnabled(bool enabled) {
-		EndTurnButton.gameObject.SetActive(enabled);
+		_endTurnButton.gameObject.SetActive(enabled);
 	}
 
 	public static void SetCycleButtonEnabled(bool enabled) {
-		CycleButton.gameObject.SetActive(enabled);
+		_cycleButton.gameObject.SetActive(enabled);
 	}
 
 	public static int GetOppositeTeam(int currentTurn) {
@@ -84,8 +86,8 @@ public class GameManager : MonoBehaviour
 		Square.SetAllHighlighted(Board.LastSquaresMoved[oldTurn], true);
 		Board.SquaresTraveledThisTurn = new List<Square> { };
 
-        // don't flip the board if spacebar is held in dev mode
-        if (DeveloperMode && !FlipBoard) return;
+        // don't flip the board if space bar is held in dev mode
+        if (DeveloperMode && !_flipBoard) return;
         
         _boardFlipped = !_boardFlipped;
         BackwardTeam = GetOppositeTeam(_playerTurn);

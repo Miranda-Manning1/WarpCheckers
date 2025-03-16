@@ -15,7 +15,7 @@ public class Square : MonoBehaviour
     public Vector2Int coordinates;
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    private void Start()
     {
         _board = Board.Instance;
     }
@@ -30,7 +30,7 @@ public class Square : MonoBehaviour
         Board.SelectedSquare = this;
         
         // if queen selected, enable cycle button
-        if (this.GetPiece().pieceType == Piece.PieceType.Queen && !GameManager.ChainCaptureRunning())
+        if (this.GetPiece().canCycle && !GameManager.ChainCaptureRunning())
         {
             CycleButton.SetCycleEnabled(false);
             GameManager.SetCycleButtonEnabled(true);
@@ -337,7 +337,7 @@ public class Square : MonoBehaviour
     /*
      * for a List of Squares, can every square be contained in a 2x2 box (warping accomodated)
      */
-    public static bool SquaresContainedIn2x2Box(List<Square> squares)
+    private static bool SquaresContainedIn2x2Box(List<Square> squares)
     {
         for (int i = 0; i < squares.Count; i++)
         {

@@ -12,10 +12,10 @@ public class Board : MonoBehaviour
 
     public Vector2Int boardLength;
     public static Vector2Int BoardLength = new Vector2Int(8, 8);
-    public static int CheckerRowsPerSide = 3;
+    private static int _checkerRowsPerSide = 3;
     public static Square[,] Squares;
     public static Square SelectedSquare;
-    public static int PieceCount = 0;
+    private static int _pieceCount = 0;
 
 	public static List<Square>[] LastSquaresMoved = new List<Square>[2];
 	public static List<Square> SquaresTraveledThisTurn = new List<Square> { };
@@ -36,7 +36,7 @@ public class Board : MonoBehaviour
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    private void Start()
     {
         BoardLength = boardLength;
         CheckBoardDimensions();
@@ -64,16 +64,16 @@ public class Board : MonoBehaviour
     private void CheckBoardDimensions()
     {
         if (BoardLength.x < 0 || BoardLength.y < 0) BoardLength = new Vector2Int(0, 0);
-        if (CheckerRowsPerSide < 0) CheckerRowsPerSide = 0;
+        if (_checkerRowsPerSide < 0) _checkerRowsPerSide = 0;
         
         int calculatedCheckerRowsPerSide = (BoardLength.y - 1) / 2;
-        if (calculatedCheckerRowsPerSide < CheckerRowsPerSide) CheckerRowsPerSide = calculatedCheckerRowsPerSide;
+        if (calculatedCheckerRowsPerSide < _checkerRowsPerSide) _checkerRowsPerSide = calculatedCheckerRowsPerSide;
     }
 
     /*
      * creates the squares on the checkers board
      */
-    void CreateSquares()
+    private void CreateSquares()
     {
         Color squareColor1 = Color.black;
         Color squareColor2 = Color.white;
@@ -135,8 +135,7 @@ public class Board : MonoBehaviour
     public static void CreateChecker(Square square, int team, Piece.PieceType pieceType)
     {
         // create piece and set fields
-        Piece piece = new GameObject("Piece" + Board.PieceCount).AddComponent<Piece>();
-        piece.gameManager = FindObjectOfType<GameManager>();
+        Piece piece = new GameObject("Piece" + Board._pieceCount).AddComponent<Piece>();
         square.SetPiece(piece);
         piece.transform.position = square.transform.position;
         piece.transform.localScale = new Vector3(_squareSize / 2f, _squareSize / 2f, piece.transform.localScale.z);
@@ -165,23 +164,23 @@ public class Board : MonoBehaviour
         piece.pieceSprite.color = GameManager.TeamColors[team];
         
         piece.SetPieceType(pieceType);
-        Board.PieceCount++;
+        Board._pieceCount++;
     }
 
     /*
      * creates all the starting checkers pieces
      */
-    private void CreateCheckers()
+    private static void CreateCheckers()
     {
-        if (CheckerRowsPerSide == 0) return;
+        if (_checkerRowsPerSide == 0) return;
         
         Piece templatePiece = TemplatePiece.Instance;
 
         // Y position of the bottom-left-most checker on teams 0 and 1 respectively
-        int[] startY = { 0, BoardLength.y - CheckerRowsPerSide };
+        int[] startY = { 0, BoardLength.y - _checkerRowsPerSide };
 
         // ending Y position for the checkers being created on teams 0 and 1 respectively
-        int[] endY = { CheckerRowsPerSide, BoardLength.y };
+        int[] endY = { _checkerRowsPerSide, BoardLength.y };
 
         // create two teams of checkers
         for (int t = 0; t < 2; t++)

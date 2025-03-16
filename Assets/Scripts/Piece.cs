@@ -7,14 +7,12 @@ using System.Collections.Generic;
 
 public class Piece : MonoBehaviour
 {
-    private Board _board;
-	public GameManager gameManager;
     public SpriteRenderer pieceSprite;
     public SpriteRenderer extraSprite;
 
     public static Sprite CheckerSprite;
-    public static Sprite KingSprite;
-    public static Sprite QueenSprite;
+    private static Sprite _kingSprite;
+    private static Sprite _queenSprite;
     
     public Square square;
 
@@ -41,15 +39,9 @@ public class Piece : MonoBehaviour
 	void Awake()
 	{
 		CheckerSprite = Resources.Load<Sprite>("Checker");
-		KingSprite = Resources.Load<Sprite>("King");
-		QueenSprite = Resources.Load<Sprite>("Queen");
+		_kingSprite = Resources.Load<Sprite>("King");
+		_queenSprite = Resources.Load<Sprite>("Queen");
 	}
-    
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        _board = Board.Instance;
-    }
 
     private void SetSquare(Square squareToSet)
     {
@@ -266,7 +258,7 @@ public class Piece : MonoBehaviour
 		if (newPieceType == PieceType.King) {
         	directionless = true;
         	canSwap = true;
-			extraSprite.sprite = KingSprite;
+			extraSprite.sprite = _kingSprite;
 			extraSprite.color = Color.red;
         	extraSprite.enabled = true;
 			return;
@@ -277,7 +269,7 @@ public class Piece : MonoBehaviour
 			directionless = true;
 			canSwap = true;
 			canCycle = true;
-			extraSprite.sprite = QueenSprite;
+			extraSprite.sprite = _queenSprite;
 			extraSprite.color = Color.red;
 			extraSprite.enabled = true;
 			return;
@@ -317,17 +309,12 @@ public class Piece : MonoBehaviour
         /*
          * if team is the backwards team, original side and opposite side are switched from those of the non-backwards team
          */
-        switch (relativeSide)
+        return relativeSide switch
         {
-            case Board.RelativeSide.Original:
-                return (team == GameManager.BackwardTeam) ? (y == boardEnd) : (y == 0);
-
-            case Board.RelativeSide.Opposite:
-                return (team == GameManager.BackwardTeam) ? (y == 0) : (y == boardEnd);
-
-            default:
-                return false;
-        }
+	        Board.RelativeSide.Original => (team == GameManager.BackwardTeam) ? (y == boardEnd) : (y == 0),
+	        Board.RelativeSide.Opposite => (team == GameManager.BackwardTeam) ? (y == 0) : (y == boardEnd),
+	        _ => false
+        };
     }
 
     /*
