@@ -1,7 +1,9 @@
 using UnityEngine;
 
-public class CycleButton : MonoBehaviour
+public class CycleButton : Button
 {
+	public static CycleButton Instance;
+	
 	private static SpriteRenderer cycleButtonSprite;
 	private static SpriteRenderer altSprite;
 
@@ -17,6 +19,7 @@ public class CycleButton : MonoBehaviour
 
     void Start()
     {
+	    Instance = this;
         gameObject.SetActive(false);
 		cycleButtonSprite = this.gameObject.GetComponent<SpriteRenderer>();
 		altSprite = gameObject.transform.GetChild(0).GetComponent<SpriteRenderer>();
@@ -27,6 +30,8 @@ public class CycleButton : MonoBehaviour
 	 */
 	public static void SetCycleEnabled(bool enabled)
 	{
+		Board board = GameManager.Board;
+		
 		// switch button sprite if enabled status changes
 		if (cycleEnabled != enabled)
 			(cycleButtonSprite.sprite, altSprite.sprite) = (altSprite.sprite, cycleButtonSprite.sprite);
@@ -34,11 +39,11 @@ public class CycleButton : MonoBehaviour
 		cycleEnabled = enabled;
 
 		if (cycleEnabled) {
-			Queen = Board.SelectedSquare.GetPiece();
-			Board.CycleSquares.Add(Queen.square);
+			Queen = board.selectedSquare.GetPiece();
+			board.cycleSquares.Add(Queen.square);
 		} else {
 			Queen = null;
-			Board.CycleSquares.Clear();
+			board.cycleSquares.Clear();
 		}
 	}
 

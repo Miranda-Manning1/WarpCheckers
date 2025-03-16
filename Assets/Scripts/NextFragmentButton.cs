@@ -1,8 +1,9 @@
 using UnityEngine;
 
-public class NextFragmentButton : MonoBehaviour
+public class NextFragmentButton : Button
 {
     private static SpriteRenderer nextFragmentButtonSprite;
+    public static NextFragmentButton Instance;
     
     void OnMouseUp()
     {
@@ -11,8 +12,8 @@ public class NextFragmentButton : MonoBehaviour
 
     void Start()
     {
+        Instance = this;
         gameObject.SetActive(false);
         nextFragmentButtonSprite = this.gameObject.GetComponent<SpriteRenderer>();
     }
-
 }

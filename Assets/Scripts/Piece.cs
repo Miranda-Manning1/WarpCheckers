@@ -7,6 +7,8 @@ using System.Collections.Generic;
 
 public class Piece : MonoBehaviour
 {
+	protected Board _board;
+	
     public SpriteRenderer pieceSprite;
     public SpriteRenderer extraSprite;
 
@@ -79,6 +81,8 @@ public class Piece : MonoBehaviour
      */
     private static bool FollowsDirectionRule(Piece piece, Square originalSquare, Square destinationSquare)
     {
+	    Board board = piece._board;
+	    
         if (piece.directionless) return true;
         
         int forwardTeam = 0;
@@ -95,7 +99,7 @@ public class Piece : MonoBehaviour
             return true;
         
         // warp forward
-        if (piece.team == forwardTeam && originalSquare.coordinates.y - destinationSquare.coordinates.y >= (Board.BoardLength.y - 2))
+        if (piece.team == forwardTeam && originalSquare.coordinates.y - destinationSquare.coordinates.y >= (board.boardLength.y - 2))
             return true;
         
         // the below two if statements should only ever be run in dev mode
@@ -105,7 +109,7 @@ public class Piece : MonoBehaviour
         
         // warp backward
         if (piece.team == backwardTeam &&
-            destinationSquare.coordinates.y - originalSquare.coordinates.y >= (Board.BoardLength.y - 2)) return true;
+            destinationSquare.coordinates.y - originalSquare.coordinates.y >= (board.boardLength.y - 2)) return true;
         
         return false;
     }
@@ -135,6 +139,7 @@ public class Piece : MonoBehaviour
      */
     public bool AttemptMove(Square originalSquare, Square destinationSquare)
     {
+	    Board board = this._board;
         
         bool moveSuccessful = false; // did a move, and therefore a turn, finish after this click
         bool avoidEndingTurn = false; // regardless of whether a move was finished this click, should the end of the turn be avoided
@@ -142,7 +147,7 @@ public class Piece : MonoBehaviour
 		bool cycleEnabled = CycleButton.CycleEnabled();
 
         // failsafe: if no piece currently selected, or if already-selected square is clicked, end attempted movement
-        if (!Board.SquareSelected() || originalSquare == destinationSquare) return false;
+        if (!board.SquareSelected() || originalSquare == destinationSquare) return false;
 
         // attempt basic movement; set moveSuccessful to true if it's successful
         if (!GameManager.ChainCaptureRunning()
@@ -181,7 +186,7 @@ public class Piece : MonoBehaviour
 
         if (didMove)
         {
-            Board.SquaresTraveledThisTurn.Add(originalSquare);
+            board.squaresTraveledThisTurn.Add(originalSquare);
             AttemptPromotion(originalSquare, destinationSquare);
         }
 
@@ -281,17 +286,18 @@ public class Piece : MonoBehaviour
      */
     private bool ReachedOppositeSide(Square originalSquare, Square destinationSquare)
     {
+	    Board board = this._board;
 
         if (team != GameManager.BackwardTeam)
         {
             return IsOnOppositeSide(this, destinationSquare)
-                   || (originalSquare.coordinates.y == Board.BoardLength.y - 2 && destinationSquare.coordinates.y == 0);
+                   || (originalSquare.coordinates.y == board.boardLength.y - 2 && destinationSquare.coordinates.y == 0);
         }
 
         if (team == GameManager.BackwardTeam)
         {
             return IsOnOppositeSide(this, destinationSquare)
-                   || (originalSquare.coordinates.y == 1 && destinationSquare.coordinates.y == Board.BoardLength.y - 1);
+                   || (originalSquare.coordinates.y == 1 && destinationSquare.coordinates.y == board.boardLength.y - 1);
         }
 
         return false;
@@ -302,9 +308,11 @@ public class Piece : MonoBehaviour
     */
     private static bool IsOnRelativeSide(Piece piece, Square square, Board.RelativeSide relativeSide)
     {
+	    Board board = piece._board;
+	    
         int team = piece.team;
         int y = square.coordinates.y;
-        int boardEnd = Board.BoardLength.y - 1;
+        int boardEnd = board.boardLength.y - 1;
 
         /*
          * if team is the backwards team, original side and opposite side are switched from those of the non-backwards team
@@ -364,14 +372,16 @@ public class Piece : MonoBehaviour
 
 	private bool AttemptCycle(Square originalSquare, Square destinationSquare)
 	{
-		if (Board.CycleSquares.Contains(destinationSquare))
+		Board board = this._board;
+		
+		if (board.cycleSquares.Contains(destinationSquare))
 		{
 			FailedCycleCleanup();
 			return false;
 		}
 		
-		Board.CycleSquares.Add(destinationSquare);
-		int size = Board.CycleSquares.Count;
+		board.cycleSquares.Add(destinationSquare);
+		int size = board.cycleSquares.Count;
 
 		// for a 180º cycle, only the Queen and a diagonally adjacent square must be clicked
 		if (size == 2 && Square.IsDiagonallyAdjacent(originalSquare, destinationSquare)) {
@@ -382,11 +392,11 @@ public class Piece : MonoBehaviour
 			Square newSquare2 = Square.GetSquareFromCoordinates(destinationSquare.coordinates.x,
 				this.square.coordinates.y);
 			
-			Board.CycleSquares.Add(newSquare1);
-			Board.CycleSquares.Add(newSquare2);
+			board.cycleSquares.Add(newSquare1);
+			board.cycleSquares.Add(newSquare2);
 
 			// if there's no piece in there besides a Queen
-			if (Square.PiecesInSquareList(Board.CycleSquares) < 2) {
+			if (Square.PiecesInSquareList(board.cycleSquares) < 2) {
 				FailedCycleCleanup();
 				return false;
 			}
@@ -399,8 +409,8 @@ public class Piece : MonoBehaviour
 				return FailedCycleCleanup();
 			
 			// make sure the two previously missing squares are highlighted upon turn switch
-			Board.SquaresTraveledThisTurn.Add(newSquare1);
-			Board.SquaresTraveledThisTurn.Add(newSquare2);
+			board.squaresTraveledThisTurn.Add(newSquare1);
+			board.squaresTraveledThisTurn.Add(newSquare2);
 
 			// make the 180º cycle
 			Square.SwapSquareContents(originalSquare, destinationSquare);
@@ -410,12 +420,12 @@ public class Piece : MonoBehaviour
 		}
 		
 		// 90º cycle
-		if (Square.SquaresAreCycleable(Board.CycleSquares)) {
+		if (Square.SquaresAreCycleable(board.cycleSquares)) {
 
 			// if only 2/3 squares selected: set the cycle running flag, highlight the new square, and move on to the next frame
 			if (size <= 2) {
 				GameManager.SetCycleRunning(true);
-				Board.SquaresTraveledThisTurn.Add(destinationSquare);
+				board.squaresTraveledThisTurn.Add(destinationSquare);
 				Square.SetHighlighted(destinationSquare, true);
 				return false;
 			}
@@ -423,17 +433,17 @@ public class Piece : MonoBehaviour
 			// 3rd square selected
 			if (size == 3) {
 				// fetch the missing Square
-				Square missingSquare = Square.GetMissing2x2Corner(Board.CycleSquares);
-				Board.CycleSquares.Add(missingSquare);
+				Square missingSquare = Square.GetMissing2x2Corner(board.cycleSquares);
+				board.cycleSquares.Add(missingSquare);
 
 				// if there's no piece in there besides a Queen
-				if (Square.PiecesInSquareList(Board.CycleSquares) < 2) return FailedCycleCleanup();
+				if (Square.PiecesInSquareList(board.cycleSquares) < 2) return FailedCycleCleanup();
 
 				// run the cycle, check for insta-promotions, and undo if any occured
 				if (!CycleAndCheckForInstaPromotions()) return FailedCycleCleanup();
 				
 				// make sure the previously missing square is highlighted upon turn switch
-				Board.SquaresTraveledThisTurn.Add(missingSquare);
+				board.squaresTraveledThisTurn.Add(missingSquare);
 				return SuccessfulCycleCleanup();
 			}
 		}
@@ -446,19 +456,21 @@ public class Piece : MonoBehaviour
 	 */
 	private bool CycleAndCheckForInstaPromotions()
 	{
+		Board board = this._board;
+		
 		// make a copy of the list of squares, and a list of all those squares' pieces
 		List<Square> originalSquares = new List<Square> { };
 		List<Piece> originalPieces = new List<Piece> { };
-		for (int i = 1; i < Board.CycleSquares.Count; i++)
+		for (int i = 1; i < board.cycleSquares.Count; i++)
 		{
-			Square currentSquare = Board.CycleSquares[i];
+			Square currentSquare = board.cycleSquares[i];
 			originalSquares.Add(currentSquare);
 			originalPieces.Add(null);
 			if (currentSquare.IsOccupied()) originalPieces[i - 1] = currentSquare.GetPiece();
 		}
 		
 		// cycle the contents
-		Square.CycleSquareContents(Board.CycleSquares);
+		Square.CycleSquareContents(board.cycleSquares);
 
 		// check each square for a piece that may have been insta-promoted. if any found, undo cycle
 		for (int i = 0; i < originalPieces.Count; i++)
@@ -466,9 +478,9 @@ public class Piece : MonoBehaviour
 			if (originalPieces[i] != null &&
 			    WouldBeInstaPromoted(originalPieces[i], originalSquares[i], originalPieces[i].square))
 			{
-				Square.CycleSquareContents(Board.CycleSquares);
-				Square.CycleSquareContents(Board.CycleSquares);
-				Square.CycleSquareContents(Board.CycleSquares);
+				Square.CycleSquareContents(board.cycleSquares);
+				Square.CycleSquareContents(board.cycleSquares);
+				Square.CycleSquareContents(board.cycleSquares);
 				return false;
 			}
 		}
@@ -482,7 +494,9 @@ public class Piece : MonoBehaviour
 	 */
 	private bool SuccessfulCycleCleanup()
 	{
-		Board.CycleSquares.Clear();
+		Board board = this._board;
+		
+		board.cycleSquares.Clear();
 		SetCycleSuccessful(true);
 		GameManager.SetCycleRunning(false);
 
@@ -495,20 +509,22 @@ public class Piece : MonoBehaviour
 	 */
 	private bool FailedCycleCleanup()
 	{
+		Board board = this._board;
+		
 		// un-highlight every cycle square except the initial Queen
-		for (int i = 1; i < Board.CycleSquares.Count; i++)
+		for (int i = 1; i < board.cycleSquares.Count; i++)
 		{
-			Square squareToUnHighlight = Board.CycleSquares[i];
+			Square squareToUnHighlight = board.cycleSquares[i];
 
 			// only un-highlight the square if it wasn't a square moved in the opponent's last turn
-			if (!Board.LastSquaresMoved[GameManager.GetOppositeTeam(this.team)].Contains(squareToUnHighlight))
+			if (!board.lastSquaresMoved[GameManager.GetOppositeTeam(this.team)].Contains(squareToUnHighlight))
 				Square.SetHighlighted(squareToUnHighlight, false);
 		}
 
 		GameManager.SetCycleRunning(false);
-		Board.SquaresTraveledThisTurn.Clear();
-		Board.CycleSquares.Clear();
-		Board.CycleSquares.Add(this.square);
+		board.squaresTraveledThisTurn.Clear();
+		board.cycleSquares.Clear();
+		board.cycleSquares.Add(this.square);
 
 		return false;
 	}
@@ -694,5 +710,13 @@ public class Piece : MonoBehaviour
     {
 	    team = GameManager.GetOppositeTeam(team);
 	    pieceSprite.color = GameManager.TeamColors[team];
+    }
+    
+    /*
+     * Set the piece's Board
+     */
+    public void SetBoard(Board board)
+    {
+	    _board = board;
     }
 }

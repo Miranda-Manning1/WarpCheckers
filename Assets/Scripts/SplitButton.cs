@@ -1,7 +1,8 @@
 using UnityEngine;
 
-public class SplitButton : MonoBehaviour
+public class SplitButton : Button
 {
+    public static SplitButton Instance;
     private static SpriteRenderer splitButtonSprite;
 
     private static bool splitEnabled = false;
@@ -13,6 +14,7 @@ public class SplitButton : MonoBehaviour
 
     void Start()
     {
+        Instance = this;
         gameObject.SetActive(false);
         splitButtonSprite = this.gameObject.GetComponent<SpriteRenderer>();
     }

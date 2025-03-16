@@ -9,25 +9,19 @@ public class Square : MonoBehaviour
     public SpriteRenderer spriteRenderer;
     public BoxCollider2D squareCollider;
     
-    private Board _board;
+    protected Board _board;
     private Piece _occupant;
     public Color originalColor;
     public Vector2Int coordinates;
-    
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    private void Start()
-    {
-        _board = Board.Instance;
-    }
 
     /*
      * Upon selection, highlight the square
      */
     public void Select()
     {
-        if (Board.SquareSelected()) Board.SelectedSquare.Deselect();
+        if (_board.SquareSelected()) _board.selectedSquare.Deselect();
         SetHighlighted(this, true);
-        Board.SelectedSquare = this;
+        _board.selectedSquare = this;
         
         // if queen selected, enable cycle button
         if (this.GetPiece().canCycle && !GameManager.ChainCaptureRunning())
@@ -42,7 +36,7 @@ public class Square : MonoBehaviour
      */
     public void Deselect()
     {
-        Board.SelectedSquare = null;
+        _board.selectedSquare = null;
         SetHighlighted(this, false);
         
         // when a piece is deselected, make sure cycle button is turned off
@@ -69,7 +63,7 @@ public class Square : MonoBehaviour
         if (GameManager.DeveloperMode && !IsOccupied())
         {
             if (Input.GetKeyDown(KeyCode.N))
-                Board.CreateChecker(this, GameManager.CurrentPlayerTurn(),
+                _board.CreateChecker(this, GameManager.CurrentPlayerTurn(),
                     Piece.PieceType.Checker);
         }
     }
@@ -82,10 +76,13 @@ public class Square : MonoBehaviour
         GameManager.ClickedOnSquare = true;
         
         // clicking on an empty square when no piece is selected does nothing
-        if (!Board.SquareSelected() && !this.IsOccupied()) return;
+        if (!_board.SquareSelected() && !this.IsOccupied()) return;
         
         // clicking on a square that's already selected deselects it
-        if (Board.SquareSelected() && Board.SelectedSquare == this && !GameManager.ChainCaptureRunning() && !GameManager.CycleRunning())
+        if (_board.SquareSelected()
+            && _board.selectedSquare == this
+            && !GameManager.ChainCaptureRunning()
+            && !GameManager.CycleRunning())
         {
             this.Deselect();
             return;
@@ -95,10 +92,11 @@ public class Square : MonoBehaviour
         Piece currentPiece = null;
         
         // when clicking a square, attempt to move the previously selected square's piece to here
-        if (Board.SquareSelected() && Board.SelectedSquare.GetPiece().team == GameManager.CurrentPlayerTurn())
+        if (_board.SquareSelected()
+            && _board.selectedSquare.GetPiece().team == GameManager.CurrentPlayerTurn())
         {
-            currentPiece = Board.SelectedSquare.GetPiece();
-            finishedMove = currentPiece!.AttemptMove(Board.SelectedSquare, this);
+            currentPiece = _board.selectedSquare.GetPiece();
+            finishedMove = currentPiece!.AttemptMove(_board.selectedSquare, this);
         }
 
         if (finishedMove)
@@ -122,8 +120,8 @@ public class Square : MonoBehaviour
 	 */
 	public static void FinishMove(Piece currentPiece, Square finalLocation) {
 		GameManager.SetEndTurnButtonEnabled(false);
-		Board.SquaresTraveledThisTurn.Add(finalLocation);
-		Board.SelectedSquare.Deselect();
+        finalLocation._board.squaresTraveledThisTurn.Add(finalLocation);
+        finalLocation._board.selectedSquare.Deselect();
 		currentPiece.SetChainCaptureSuccessful(false);
         currentPiece.SetCycleSuccessful(false);
         GameManager.SetChainCaptureRunning(false);
@@ -197,10 +195,13 @@ public class Square : MonoBehaviour
      */
     private static bool IsOnSameRow(Square originalSquare, Square destinationSquare, int spacesApart)
     {
+        Board board = originalSquare._board;
+        
         bool yEqual = originalSquare.coordinates.y == destinationSquare.coordinates.y;
 
         int xCurrentSpacesApart = Math.Abs(originalSquare.coordinates.x - destinationSquare.coordinates.x);
-        bool xCorrectSpacesApart = xCurrentSpacesApart == spacesApart || xCurrentSpacesApart == Board.BoardLength.x - 1;
+        bool xCorrectSpacesApart = xCurrentSpacesApart == spacesApart
+                                   || xCurrentSpacesApart == board.boardLength.x - 1;
         
         return yEqual && xCorrectSpacesApart;
     }
@@ -210,10 +211,12 @@ public class Square : MonoBehaviour
      */
     private static bool IsOnSameColumn(Square originalSquare, Square destinationSquare, int spacesApart)
     {
+        Board board = originalSquare._board;
+        
         bool xEqual = originalSquare.coordinates.x == destinationSquare.coordinates.x;
         
         int yCurrentSpacesApart = Math.Abs(originalSquare.coordinates.y - destinationSquare.coordinates.y);
-        bool yCorrectSpacesApart = yCurrentSpacesApart == spacesApart || yCurrentSpacesApart == Board.BoardLength.y - 1;
+        bool yCorrectSpacesApart = yCurrentSpacesApart == spacesApart || yCurrentSpacesApart == board.boardLength.y - 1;
         
         return xEqual && yCorrectSpacesApart;
     }
@@ -225,13 +228,14 @@ public class Square : MonoBehaviour
 
     public static bool IsDiagonal(Square originalSquare, Square destinationSquare, int spacesApart)
     {
+        Board board = originalSquare._board;
 
         // look in both x and y directions
         for (int i = 0; i < 2; i++)
         {
             // check in front of and behind
-            if ((originalSquare.coordinates[i] + spacesApart) % Board.BoardLength[i] == destinationSquare.coordinates[i]
-                || (originalSquare.coordinates[i] - spacesApart + Board.BoardLength[i]) % Board.BoardLength[i] == destinationSquare.coordinates[i])
+            if ((originalSquare.coordinates[i] + spacesApart) % board.boardLength[i] == destinationSquare.coordinates[i]
+                || (originalSquare.coordinates[i] - spacesApart + board.boardLength[i]) % board.boardLength[i] == destinationSquare.coordinates[i])
                 continue;
 
             // squares aren't diagonal spacesApart spaces apart
@@ -248,19 +252,20 @@ public class Square : MonoBehaviour
     public static Square SquareBetween(Square originalSquare, Square destinationSquare)
     {
         Vector2Int betweenSquareCoordinates = new Vector2Int();
+        Board board = originalSquare._board;
 
         // look in both x and y directions
         for (int i = 0; i < 2; i++)
         {
             // check in front of
-            if ((originalSquare.coordinates[i] + 2) % Board.BoardLength[i] == destinationSquare.coordinates[i])
+            if ((originalSquare.coordinates[i] + 2) % board.boardLength[i] == destinationSquare.coordinates[i])
             {
-                betweenSquareCoordinates[i] = (originalSquare.coordinates[i] + 1) % Board.BoardLength[i];
+                betweenSquareCoordinates[i] = (originalSquare.coordinates[i] + 1) % board.boardLength[i];
             }
             // check behind
-            else if ((originalSquare.coordinates[i] - 2 + Board.BoardLength[i]) % Board.BoardLength[i] == destinationSquare.coordinates[i])
+            else if ((originalSquare.coordinates[i] - 2 + board.boardLength[i]) % board.boardLength[i] == destinationSquare.coordinates[i])
             {
-                betweenSquareCoordinates[i] = (originalSquare.coordinates[i] - 1 + Board.BoardLength[i]) % Board.BoardLength[i];
+                betweenSquareCoordinates[i] = (originalSquare.coordinates[i] - 1 + board.boardLength[i]) % board.boardLength[i];
             }
             // squares aren't two apart on the diagonal
             else
@@ -294,9 +299,11 @@ public class Square : MonoBehaviour
      */
     public static Square GetSquareFromCoordinates(int x, int y)
     {
+        Board board = GameManager.Board;
+        
         return GameManager.IsBoardFlipped() ?
-            Board.Squares[(Board.BoardLength.x - 1) - x, (Board.BoardLength.y - 1) - y]
-            : Board.Squares[x, y];
+            board.Squares[(board.boardLength.x - 1) - x, (board.boardLength.y - 1) - y]
+            : board.Squares[x, y];
     }
 
     /*
@@ -305,13 +312,15 @@ public class Square : MonoBehaviour
      */
     public static Square GetRelativeSquare(Square originalSquare, int x, int y)
     {
+        Board board = originalSquare._board;
+        
         /*
          * calculate absolute coordinates of square
-         * + Board.BoardLength.x/y is used to accomodate negative relative coordinates
+         * + Board.boardLength.x/y is used to accomodate negative relative coordinates
          */
         Vector2Int absoluteCoordinates = new Vector2Int((
-            originalSquare.coordinates.x + x + Board.BoardLength.x) % Board.BoardLength.x,
-            (originalSquare.coordinates.y + y + Board.BoardLength.y) % Board.BoardLength.y);
+            originalSquare.coordinates.x + x + board.boardLength.x) % board.boardLength.x,
+            (originalSquare.coordinates.y + y + board.boardLength.y) % board.boardLength.y);
 
         return Square.GetSquareFromCoordinates(absoluteCoordinates.x, absoluteCoordinates.y);
     }
@@ -444,5 +453,13 @@ public class Square : MonoBehaviour
         }
 
         return count;
+    }
+
+    /*
+     * Set the square's Board
+     */
+    public void SetBoard(Board board)
+    {
+        _board = board;
     }
 }

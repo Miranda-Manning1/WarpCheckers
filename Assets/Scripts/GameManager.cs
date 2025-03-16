@@ -24,6 +24,9 @@ public class GameManager : MonoBehaviour
     public static int BackwardTeam = 1;
     
 	public static Color[] TeamColors = new[] { Color.white, Color.cyan };
+
+    public static Board Board;
+    public static Board previousBoard;
     
     private void Awake()
     {
@@ -81,10 +84,10 @@ public class GameManager : MonoBehaviour
 		_playerTurn = GetOppositeTeam(_playerTurn);
 
 		// highlight the squares the opponent moved on, while un-highlighting the new turn's squares
-        Board.LastSquaresMoved[oldTurn] = Board.SquaresTraveledThisTurn;
-		Square.SetAllHighlighted(Board.LastSquaresMoved[_playerTurn], false);
-		Square.SetAllHighlighted(Board.LastSquaresMoved[oldTurn], true);
-		Board.SquaresTraveledThisTurn = new List<Square> { };
+        Board.lastSquaresMoved[oldTurn] = Board.squaresTraveledThisTurn;
+		Square.SetAllHighlighted(Board.lastSquaresMoved[_playerTurn], false);
+		Square.SetAllHighlighted(Board.lastSquaresMoved[oldTurn], true);
+		Board.squaresTraveledThisTurn = new List<Square> { };
 
         // don't flip the board if space bar is held in dev mode
         if (DeveloperMode && !_flipBoard) return;
