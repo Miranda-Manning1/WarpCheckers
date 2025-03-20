@@ -13,8 +13,8 @@ public class CycleButton : Button
 
 	void OnMouseUp()
 	{
-		GameManager.ClickedOnSquare = true;
-		SetCycleEnabled(!cycleEnabled);
+		_gameManager.clickedOnSquare = true;
+		SetCycleEnabled(_board, !cycleEnabled);
 	}
 
 	void Awake()
@@ -25,6 +25,8 @@ public class CycleButton : Button
     void Start()
     {
 	    SetBoard(Board.Instance);
+	    SetGameManager(GameManager.Instance);
+	    
         gameObject.SetActive(false);
 		cycleButtonSprite = this.gameObject.GetComponent<SpriteRenderer>();
 		altSprite = gameObject.transform.GetChild(0).GetComponent<SpriteRenderer>();
@@ -33,10 +35,8 @@ public class CycleButton : Button
 	/*
 	 * set whether cycling is active or not
 	 */
-	public static void SetCycleEnabled(bool enabled)
+	public static void SetCycleEnabled(Board board, bool enabled)
 	{
-		Board board = GameManager.Board;
-		
 		// switch button sprite if enabled status changes
 		if (cycleEnabled != enabled)
 			(cycleButtonSprite.sprite, altSprite.sprite) = (altSprite.sprite, cycleButtonSprite.sprite);

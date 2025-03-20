@@ -10,9 +10,18 @@ public class Square : MonoBehaviour
     public BoxCollider2D squareCollider;
     
     protected Board _board;
+    protected GameManager _gameManager;
+
+    
     private Piece _occupant;
     public Color originalColor;
     public Vector2Int coordinates;
+
+    void Start()
+    {
+        _gameManager = GameManager.Instance;
+        _board = Board.Instance;
+    }
 
     /*
      * Upon selection, highlight the square
@@ -24,10 +33,10 @@ public class Square : MonoBehaviour
         _board.selectedSquare = this;
         
         // if queen selected, enable cycle button
-        if (this.GetPiece().canCycle && !GameManager.ChainCaptureRunning())
+        if (this.GetPiece().canCycle && !_gameManager.ChainCaptureRunning())
         {
-            CycleButton.SetCycleEnabled(false);
-            GameManager.SetCycleButtonEnabled(true);
+            CycleButton.SetCycleEnabled(_board,false);
+            _gameManager.SetCycleButtonEnabled(true);
         }
     }
 
@@ -40,30 +49,30 @@ public class Square : MonoBehaviour
         SetHighlighted(this, false);
         
         // when a piece is deselected, make sure cycle button is turned off
-        CycleButton.SetCycleEnabled(false);
-        GameManager.SetCycleButtonEnabled(false);
+        CycleButton.SetCycleEnabled(_board, false);
+        _gameManager.SetCycleButtonEnabled(false);
         
     }
 
     private void OnMouseOver()
     {
-        if (Input.GetMouseButtonUp(1) && GameManager.DeveloperMode && IsOccupied())
+        if (Input.GetMouseButtonUp(1) && _gameManager.developerMode && IsOccupied())
         {
             Piece.DestroyPiece(this.GetPiece());
         }
 
 		// press K on a piece when Developer Mode is active to turn it into a King
-		if (GameManager.DeveloperMode && IsOccupied()) {
+		if (_gameManager.developerMode && IsOccupied()) {
 			if (Input.GetKeyDown(KeyCode.C)) GetPiece().SetPieceType(Piece.PieceType.Checker);
 			if (Input.GetKeyDown(KeyCode.K)) GetPiece().SetPieceType(Piece.PieceType.King);
 			if (Input.GetKeyDown(KeyCode.Q)) GetPiece().SetPieceType(Piece.PieceType.Queen);
             if (Input.GetKeyDown(KeyCode.T)) GetPiece().SwitchTeam();
         }
 
-        if (GameManager.DeveloperMode && !IsOccupied())
+        if (_gameManager.developerMode && !IsOccupied())
         {
             if (Input.GetKeyDown(KeyCode.N))
-                _board.CreateChecker(this, GameManager.CurrentPlayerTurn(),
+                _board.CreateChecker(this, _gameManager.CurrentPlayerTurn(),
                     Piece.PieceType.Checker);
         }
     }
@@ -73,7 +82,7 @@ public class Square : MonoBehaviour
      */
     private void OnMouseUp()
     {
-        GameManager.ClickedOnSquare = true;
+        _gameManager.clickedOnSquare = true;
         
         // clicking on an empty square when no piece is selected does nothing
         if (!_board.SquareSelected() && !this.IsOccupied()) return;
@@ -81,8 +90,8 @@ public class Square : MonoBehaviour
         // clicking on a square that's already selected deselects it
         if (_board.SquareSelected()
             && _board.selectedSquare == this
-            && !GameManager.ChainCaptureRunning()
-            && !GameManager.CycleRunning())
+            && !_gameManager.ChainCaptureRunning()
+            && !_gameManager.CycleRunning())
         {
             this.Deselect();
             return;
@@ -93,7 +102,7 @@ public class Square : MonoBehaviour
         
         // when clicking a square, attempt to move the previously selected square's piece to here
         if (_board.SquareSelected()
-            && _board.selectedSquare.GetPiece().team == GameManager.CurrentPlayerTurn())
+            && _board.selectedSquare.GetPiece().team == _gameManager.CurrentPlayerTurn())
         {
             currentPiece = _board.selectedSquare.GetPiece();
             finishedMove = currentPiece!.AttemptMove(_board.selectedSquare, this);
@@ -106,27 +115,30 @@ public class Square : MonoBehaviour
         }
 
         // if a chain capture is currently running, go to next frame
-        if (GameManager.ChainCaptureRunning() || GameManager.CycleRunning()) {
+        if (_gameManager.ChainCaptureRunning() || _gameManager.CycleRunning()) {
 			return;
 		}
         
         // if no move done, just select a square
-        if (this.IsOccupied() && this.GetPiece().team == GameManager.CurrentPlayerTurn())
+        if (this.IsOccupied() && this.GetPiece().team == _gameManager.CurrentPlayerTurn())
             Select();
     }
 
 	/*
 	 * runs the processes for finishing a move/turn
 	 */
-	public static void FinishMove(Piece currentPiece, Square finalLocation) {
-		GameManager.SetEndTurnButtonEnabled(false);
+	public static void FinishMove(Piece currentPiece, Square finalLocation)
+    {
+        GameManager gameManager = finalLocation.GetGameManager();
+        
+		gameManager.SetEndTurnButtonEnabled(false);
         finalLocation._board.squaresTraveledThisTurn.Add(finalLocation);
         finalLocation._board.selectedSquare.Deselect();
 		currentPiece.SetChainCaptureSuccessful(false);
         currentPiece.SetCycleSuccessful(false);
-        GameManager.SetChainCaptureRunning(false);
-        GameManager.SetCycleRunning(false);
-		GameManager.SwitchPlayerTurn();
+        gameManager.SetChainCaptureRunning(false);
+        gameManager.SetCycleRunning(false);
+		gameManager.SwitchPlayerTurn();
 		return;
 	}
     
@@ -280,7 +292,7 @@ public class Square : MonoBehaviour
          * return the coords of the between square.
          * if the board is flipped, mirror the coordinates to ensure the correct square is returned
          */
-        return GetSquareFromCoordinates(betweenSquareCoordinates.x, betweenSquareCoordinates.y);
+        return GetSquareFromCoordinates(board, betweenSquareCoordinates.x, betweenSquareCoordinates.y);
     }
 
     /*
@@ -297,11 +309,9 @@ public class Square : MonoBehaviour
     /*
      * return a Square based on a set of coordinates, accounting for whether the board is flipped
      */
-    public static Square GetSquareFromCoordinates(int x, int y)
+    public static Square GetSquareFromCoordinates(Board board, int x, int y)
     {
-        Board board = GameManager.Board;
-        
-        return GameManager.IsBoardFlipped() ?
+        return board.GetGameManager().IsBoardFlipped() ?
             board.Squares[(board.boardLength.x - 1) - x, (board.boardLength.y - 1) - y]
             : board.Squares[x, y];
     }
@@ -310,10 +320,8 @@ public class Square : MonoBehaviour
      * returns a Square based on relative coordinates of a given square.
      * given relative coordinates may be negative
      */
-    public static Square GetRelativeSquare(Square originalSquare, int x, int y)
+    public static Square GetRelativeSquare(Board board, Square originalSquare, int x, int y)
     {
-        Board board = originalSquare._board;
-        
         /*
          * calculate absolute coordinates of square
          * + Board.boardLength.x/y is used to accomodate negative relative coordinates
@@ -322,7 +330,7 @@ public class Square : MonoBehaviour
             originalSquare.coordinates.x + x + board.boardLength.x) % board.boardLength.x,
             (originalSquare.coordinates.y + y + board.boardLength.y) % board.boardLength.y);
 
-        return Square.GetSquareFromCoordinates(absoluteCoordinates.x, absoluteCoordinates.y);
+        return Square.GetSquareFromCoordinates(board, absoluteCoordinates.x, absoluteCoordinates.y);
     }
 
     /*
@@ -420,7 +428,7 @@ public class Square : MonoBehaviour
         {
             for (int j = 0; j < yList.Count; j++)
             {
-                Square squareToCheck = GetSquareFromCoordinates(xList[i], yList[j]);
+                Square squareToCheck = GetSquareFromCoordinates(squares[0]._board, xList[i], yList[j]);
                 if (!squares.Contains(squareToCheck)) return squareToCheck;
             }
         }
@@ -461,5 +469,21 @@ public class Square : MonoBehaviour
     public void SetBoard(Board board)
     {
         _board = board;
+    }
+
+    /*
+     * return the square's board
+     */
+    public Board GetBoard()
+    {
+        return _board;
+    }
+
+    /*
+     * return the square's GameManager
+     */
+    public GameManager GetGameManager()
+    {
+        return _gameManager;
     }
 }

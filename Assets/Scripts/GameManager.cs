@@ -9,24 +9,24 @@ public class GameManager : MonoBehaviour
     private SpriteRenderer _boardFlipMarker;
 
     public static GameManager Instance;
-    private static EndTurnButton _endTurnButton;
-    private static CycleButton _cycleButton;
+    private EndTurnButton _endTurnButton;
+    private CycleButton _cycleButton;
     
-    public static bool ClickedOnSquare = false;
+    public bool clickedOnSquare = false;
 
-    private static int _playerTurn = 0;
-    private static bool _boardFlipped = false;
-    private static bool _chainCaptureRunning = false;
-	private static bool _cycleRunning = false;
+    private int _playerTurn = 0;
+    private bool _boardFlipped = false;
+    private bool _chainCaptureRunning = false;
+	private bool _cycleRunning = false;
 
-    public static bool DeveloperMode = false;
-    private static bool _flipBoard = true;
-    public static int BackwardTeam = 1;
+    public bool developerMode = false;
+    private bool _flipBoard = true;
+    public int backwardTeam = 1;
     
-	public static Color[] TeamColors = new[] { Color.white, Color.cyan };
+	public Color[] teamColors = new[] { Color.white, Color.cyan };
 
-    public static Board Board;
-    public static Board previousBoard;
+    public Board board;
+    public Board previousBoard;
     
     private void Awake()
     {
@@ -47,22 +47,22 @@ public class GameManager : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.D))
         {
-            DeveloperMode = !DeveloperMode;
-            _devModeMarker.enabled = DeveloperMode;
+            developerMode = !developerMode;
+            _devModeMarker.enabled = developerMode;
         }
 
-        if (DeveloperMode && Input.GetKeyDown(KeyCode.F))
+        if (developerMode && Input.GetKeyDown(KeyCode.F))
         {
             _flipBoard = !_flipBoard;
             _boardFlipMarker.enabled = !_flipBoard;
         }
     }
 
-	public static void SetEndTurnButtonEnabled(bool enabled) {
+	public void SetEndTurnButtonEnabled(bool enabled) {
 		_endTurnButton.gameObject.SetActive(enabled);
 	}
 
-	public static void SetCycleButtonEnabled(bool enabled) {
+	public void SetCycleButtonEnabled(bool enabled) {
 		_cycleButton.gameObject.SetActive(enabled);
 	}
 
@@ -78,29 +78,29 @@ public class GameManager : MonoBehaviour
     /*
      * Switch the turn from one player's to the other's
      */
-    public static void SwitchPlayerTurn()
+    public void SwitchPlayerTurn()
     {
         int oldTurn = _playerTurn;
 		_playerTurn = GetOppositeTeam(_playerTurn);
 
 		// highlight the squares the opponent moved on, while un-highlighting the new turn's squares
-        Board.lastSquaresMoved[oldTurn] = Board.squaresTraveledThisTurn;
-		Square.SetAllHighlighted(Board.lastSquaresMoved[_playerTurn], false);
-		Square.SetAllHighlighted(Board.lastSquaresMoved[oldTurn], true);
-		Board.squaresTraveledThisTurn = new List<Square> { };
+        board.lastSquaresMoved[oldTurn] = board.squaresTraveledThisTurn;
+		Square.SetAllHighlighted(board.lastSquaresMoved[_playerTurn], false);
+		Square.SetAllHighlighted(board.lastSquaresMoved[oldTurn], true);
+		board.squaresTraveledThisTurn = new List<Square> { };
 
         // don't flip the board if space bar is held in dev mode
-        if (DeveloperMode && !_flipBoard) return;
+        if (developerMode && !_flipBoard) return;
         
         _boardFlipped = !_boardFlipped;
-        BackwardTeam = GetOppositeTeam(_playerTurn);
-        Board.FlipBoard();
+        backwardTeam = GetOppositeTeam(_playerTurn);
+        board.FlipBoard();
     }
 
     /*
      * Get the current player whose turn it is
      */
-    public static int CurrentPlayerTurn()
+    public int CurrentPlayerTurn()
     {
         return _playerTurn;
     }
@@ -108,7 +108,7 @@ public class GameManager : MonoBehaviour
     /*
      * Check if the board is flipped. It should always be flipped if it's team 1's turn
      */
-    public static bool IsBoardFlipped()
+    public bool IsBoardFlipped()
     {
         return _boardFlipped;
     }
@@ -117,12 +117,12 @@ public class GameManager : MonoBehaviour
      * Returns whether there is a chain capture currently running.
      * For use in Square.OnMouseUp() to ensure the piece isn't deselected
      */
-    public static bool ChainCaptureRunning()
+    public bool ChainCaptureRunning()
     {
         return _chainCaptureRunning;
     }
     
-    public static void SetChainCaptureRunning(bool isRunning)
+    public void SetChainCaptureRunning(bool isRunning)
     {
         _chainCaptureRunning = isRunning;
     }
@@ -130,12 +130,12 @@ public class GameManager : MonoBehaviour
     /*
      * Returns whether there is a cycle currently running.
      */
-    public static bool CycleRunning()
+    public bool CycleRunning()
     {
         return _cycleRunning;
     }
     
-    public static void SetCycleRunning(bool isRunning)
+    public void SetCycleRunning(bool isRunning)
     {
         _cycleRunning = isRunning;
     }

@@ -7,7 +7,7 @@ public class NextFragmentButton : Button
     
     void OnMouseUp()
     {
-        GameManager.ClickedOnSquare = true;
+        _gameManager.clickedOnSquare = true;
     }
 
     void Awake()
@@ -18,6 +18,8 @@ public class NextFragmentButton : Button
     void Start()
     {
         SetBoard(Board.Instance);
+        SetGameManager(GameManager.Instance);
+        
         gameObject.SetActive(false);
         nextFragmentButtonSprite = this.gameObject.GetComponent<SpriteRenderer>();
     }

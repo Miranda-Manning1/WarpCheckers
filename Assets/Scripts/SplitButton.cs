@@ -9,7 +9,7 @@ public class SplitButton : Button
     
     void OnMouseUp()
     {
-        GameManager.ClickedOnSquare = true;
+        _gameManager.clickedOnSquare = true;
     }
 
     void Awake()
@@ -20,6 +20,8 @@ public class SplitButton : Button
     void Start()
     {
         SetBoard(Board.Instance);
+        SetGameManager(GameManager.Instance);
+        
         gameObject.SetActive(false);
         splitButtonSprite = this.gameObject.GetComponent<SpriteRenderer>();
     }

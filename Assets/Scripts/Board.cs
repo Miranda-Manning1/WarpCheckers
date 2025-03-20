@@ -9,6 +9,7 @@ public class Board : MonoBehaviour
 {
 
     public static Board Instance;
+    private GameManager _gameManager;
 
     public Vector2Int boardLength = new Vector2Int(8, 8);
     private int _checkerRowsPerSide = 3;
@@ -37,7 +38,8 @@ public class Board : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     private void Start()
     {
-        GameManager.Board = this;
+        _gameManager = GameManager.Instance;
+        _gameManager.board = this;
         
         CheckBoardDimensions();
         
@@ -162,7 +164,7 @@ public class Board : MonoBehaviour
         piece.pieceSprite.sortingOrder = 1;
         piece.extraSprite.sortingOrder = 2;
 
-        piece.pieceSprite.color = GameManager.TeamColors[team];
+        piece.pieceSprite.color = _gameManager.teamColors[team];
         
         piece.SetPieceType(pieceType);
         _pieceCount++;
@@ -232,5 +234,13 @@ public class Board : MonoBehaviour
                 }
             }
         }
+    }
+
+    /*
+     * Get the board's gamemanager
+     */
+    public GameManager GetGameManager()
+    {
+        return _gameManager;
     }
 }

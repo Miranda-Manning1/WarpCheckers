@@ -8,6 +8,7 @@ using System.Collections.Generic;
 public class Piece : MonoBehaviour
 {
 	protected Board _board;
+	protected GameManager _gameManager;
 	
     public SpriteRenderer pieceSprite;
     public SpriteRenderer extraSprite;
@@ -43,6 +44,11 @@ public class Piece : MonoBehaviour
 		CheckerSprite = Resources.Load<Sprite>("Checker");
 		_kingSprite = Resources.Load<Sprite>("King");
 		_queenSprite = Resources.Load<Sprite>("Queen");
+	}
+
+	void Start()
+	{
+		_gameManager = GameManager.Instance;
 	}
 
     private void SetSquare(Square squareToSet)
@@ -82,13 +88,14 @@ public class Piece : MonoBehaviour
     private static bool FollowsDirectionRule(Piece piece, Square originalSquare, Square destinationSquare)
     {
 	    Board board = piece._board;
+	    GameManager gameManager = board.GetGameManager();
 	    
         if (piece.directionless) return true;
         
         int forwardTeam = 0;
         int backwardTeam = 1;
 
-        if (GameManager.IsBoardFlipped())
+        if (gameManager.IsBoardFlipped())
         {
             forwardTeam = 1;
             backwardTeam = 0;
@@ -150,26 +157,26 @@ public class Piece : MonoBehaviour
         if (!board.SquareSelected() || originalSquare == destinationSquare) return false;
 
         // attempt basic movement; set moveSuccessful to true if it's successful
-        if (!GameManager.ChainCaptureRunning()
+        if (!_gameManager.ChainCaptureRunning()
             && !cycleEnabled
 			&& AttemptBasicMovement(originalSquare, destinationSquare))
             moveSuccessful = true;
 
         // attempt special moves; set moveSuccessful to true if any of them are successful
-        if (!GameManager.ChainCaptureRunning()
+        if (!_gameManager.ChainCaptureRunning()
             && !moveSuccessful
             && AttemptSpecialMoves(originalSquare, destinationSquare, cycleEnabled)) moveSuccessful = true;
 
 		// attempt king-to-queen promotion
-		if(!GameManager.ChainCaptureRunning()
-			&& !GameManager.CycleRunning()
+		if(!_gameManager.ChainCaptureRunning()
+			&& !_gameManager.CycleRunning()
 			&& !cycleEnabled
 			&& !moveSuccessful
 			&& AttemptQueenPromotion(originalSquare, destinationSquare)) moveSuccessful = true;
 
         // attempt a capture, which may lead into a chain capture
         if (!moveSuccessful
-			&& !GameManager.CycleRunning()
+			&& !_gameManager.CycleRunning()
 			&& !cycleEnabled
 			&& AttemptCapture(originalSquare, destinationSquare)) captureThisClick = true;
 
@@ -177,7 +184,7 @@ public class Piece : MonoBehaviour
 		 * avoid ending the turn if there's an ongoing chain capture or cycle
 		 * or end it if a chain capture or cycle has finished
 		 */
-        if (GameManager.ChainCaptureRunning() || GameManager.CycleRunning()) avoidEndingTurn = true;
+        if (_gameManager.ChainCaptureRunning() || _gameManager.CycleRunning()) avoidEndingTurn = true;
         if (!moveSuccessful && !avoidEndingTurn
 			&& (ChainCaptureSuccessful() || CycleSuccessful())) moveSuccessful = true;
         
@@ -191,7 +198,7 @@ public class Piece : MonoBehaviour
         }
 
 		// if there's an ongoing chain capture, enable the End Turn button
-		if (GameManager.ChainCaptureRunning()) GameManager.SetEndTurnButtonEnabled(true);
+		if (_gameManager.ChainCaptureRunning()) _gameManager.SetEndTurnButtonEnabled(true);
         
         return moveSuccessful && !avoidEndingTurn;
     }
@@ -288,13 +295,13 @@ public class Piece : MonoBehaviour
     {
 	    Board board = this._board;
 
-        if (team != GameManager.BackwardTeam)
+        if (team != _gameManager.backwardTeam)
         {
             return IsOnOppositeSide(this, destinationSquare)
                    || (originalSquare.coordinates.y == board.boardLength.y - 2 && destinationSquare.coordinates.y == 0);
         }
 
-        if (team == GameManager.BackwardTeam)
+        if (team == _gameManager.backwardTeam)
         {
             return IsOnOppositeSide(this, destinationSquare)
                    || (originalSquare.coordinates.y == 1 && destinationSquare.coordinates.y == board.boardLength.y - 1);
@@ -309,6 +316,7 @@ public class Piece : MonoBehaviour
     private static bool IsOnRelativeSide(Piece piece, Square square, Board.RelativeSide relativeSide)
     {
 	    Board board = piece._board;
+	    GameManager gameManager = piece._gameManager;
 	    
         int team = piece.team;
         int y = square.coordinates.y;
@@ -319,8 +327,8 @@ public class Piece : MonoBehaviour
          */
         return relativeSide switch
         {
-	        Board.RelativeSide.Original => (team == GameManager.BackwardTeam) ? (y == boardEnd) : (y == 0),
-	        Board.RelativeSide.Opposite => (team == GameManager.BackwardTeam) ? (y == 0) : (y == boardEnd),
+	        Board.RelativeSide.Original => (team == gameManager.backwardTeam) ? (y == boardEnd) : (y == 0),
+	        Board.RelativeSide.Opposite => (team == gameManager.backwardTeam) ? (y == 0) : (y == boardEnd),
 	        _ => false
         };
     }
@@ -387,9 +395,9 @@ public class Piece : MonoBehaviour
 		if (size == 2 && Square.IsDiagonallyAdjacent(originalSquare, destinationSquare)) {
 
 			// fetch the missing Squares and add them to the cycle list
-			Square newSquare1 = Square.GetSquareFromCoordinates(this.square.coordinates.x,
+			Square newSquare1 = Square.GetSquareFromCoordinates(board, this.square.coordinates.x,
 				destinationSquare.coordinates.y);
-			Square newSquare2 = Square.GetSquareFromCoordinates(destinationSquare.coordinates.x,
+			Square newSquare2 = Square.GetSquareFromCoordinates(board, destinationSquare.coordinates.x,
 				this.square.coordinates.y);
 			
 			board.cycleSquares.Add(newSquare1);
@@ -424,7 +432,7 @@ public class Piece : MonoBehaviour
 
 			// if only 2/3 squares selected: set the cycle running flag, highlight the new square, and move on to the next frame
 			if (size <= 2) {
-				GameManager.SetCycleRunning(true);
+				_gameManager.SetCycleRunning(true);
 				board.squaresTraveledThisTurn.Add(destinationSquare);
 				Square.SetHighlighted(destinationSquare, true);
 				return false;
@@ -498,7 +506,7 @@ public class Piece : MonoBehaviour
 		
 		board.cycleSquares.Clear();
 		SetCycleSuccessful(true);
-		GameManager.SetCycleRunning(false);
+		_gameManager.SetCycleRunning(false);
 
 		return true;
 	}
@@ -521,7 +529,7 @@ public class Piece : MonoBehaviour
 				Square.SetHighlighted(squareToUnHighlight, false);
 		}
 
-		GameManager.SetCycleRunning(false);
+		_gameManager.SetCycleRunning(false);
 		board.squaresTraveledThisTurn.Clear();
 		board.cycleSquares.Clear();
 		board.cycleSquares.Add(this.square);
@@ -553,7 +561,7 @@ public class Piece : MonoBehaviour
             !destinationSquare.IsOccupied()
             && Square.IsDiagonallyAdjacent(originalSquare, destinationSquare)
             && FollowsDirectionRule(this, originalSquare, destinationSquare)
-            && !GameManager.ChainCaptureRunning()
+            && !_gameManager.ChainCaptureRunning()
             )
         {
             SetSquare(destinationSquare);
@@ -580,12 +588,12 @@ public class Piece : MonoBehaviour
          */
         if (ChainCanContinue(destinationSquare))
         { 
-            GameManager.SetChainCaptureRunning(true);
+	        _gameManager.SetChainCaptureRunning(true);
             this.square.Select();
             return true;
         }
 
-        GameManager.SetChainCaptureRunning(false);
+        _gameManager.SetChainCaptureRunning(false);
         SetChainCaptureSuccessful(true);
 		return true;
     }
@@ -646,6 +654,8 @@ public class Piece : MonoBehaviour
      */
     private bool ChainCanContinue(Square originalSquare)
     {
+	    Board board = originalSquare.GetBoard();
+	    
         int[] directions = { 2, -2 };
 
         // check all 4 surrounding squares
@@ -653,7 +663,7 @@ public class Piece : MonoBehaviour
         {
             foreach (int y in directions)
             {
-                Square landingSquare = Square.GetRelativeSquare(square, x, y);
+                Square landingSquare = Square.GetRelativeSquare(board, square, x, y);
                 Square squareBetween = Square.SquareBetween(originalSquare, landingSquare);
                 
                 // can chain continue
@@ -709,7 +719,7 @@ public class Piece : MonoBehaviour
     public void SwitchTeam()
     {
 	    team = GameManager.GetOppositeTeam(team);
-	    pieceSprite.color = GameManager.TeamColors[team];
+	    pieceSprite.color = _gameManager.teamColors[team];
     }
     
     /*
@@ -718,5 +728,13 @@ public class Piece : MonoBehaviour
     public void SetBoard(Board board)
     {
 	    _board = board;
+    }
+
+    /*
+     * Get the piece's board
+     */
+    public Board GetBoard()
+    {
+	    return _board;
     }
 }

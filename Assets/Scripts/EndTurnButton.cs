@@ -6,8 +6,8 @@ public class EndTurnButton : Button
     
     void OnMouseUp()
     {
-		GameManager.ClickedOnSquare = true;
-        Square selectedSquare = GameManager.Board.selectedSquare;
+		_gameManager.clickedOnSquare = true;
+        Square selectedSquare = _board.selectedSquare;
         Square.FinishMove(selectedSquare.GetPiece(), selectedSquare);
     }
 
@@ -19,6 +19,8 @@ public class EndTurnButton : Button
     void Start()
     {
         SetBoard(Board.Instance);
+        SetGameManager(GameManager.Instance);
+        
         gameObject.SetActive(false);
     }
     

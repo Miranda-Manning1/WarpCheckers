@@ -15,6 +15,8 @@ public class TemplateSquare : Square
     private void Start()
     {
         SetBoard(Board.Instance);
+        _gameManager = GameManager.Instance;
+        
         originalColor = Color.black;
         spriteRenderer = GetComponent<SpriteRenderer>();
     }
