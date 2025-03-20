@@ -17,9 +17,14 @@ public class CycleButton : Button
 		SetCycleEnabled(!cycleEnabled);
 	}
 
+	void Awake()
+	{
+		Instance = this;
+	}
+
     void Start()
     {
-	    Instance = this;
+	    SetBoard(Board.Instance);
         gameObject.SetActive(false);
 		cycleButtonSprite = this.gameObject.GetComponent<SpriteRenderer>();
 		altSprite = gameObject.transform.GetChild(0).GetComponent<SpriteRenderer>();

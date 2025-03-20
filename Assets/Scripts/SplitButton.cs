@@ -12,9 +12,14 @@ public class SplitButton : Button
         GameManager.ClickedOnSquare = true;
     }
 
-    void Start()
+    void Awake()
     {
         Instance = this;
+    }
+
+    void Start()
+    {
+        SetBoard(Board.Instance);
         gameObject.SetActive(false);
         splitButtonSprite = this.gameObject.GetComponent<SpriteRenderer>();
     }

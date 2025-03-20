@@ -10,9 +10,14 @@ public class NextFragmentButton : Button
         GameManager.ClickedOnSquare = true;
     }
 
-    void Start()
+    void Awake()
     {
         Instance = this;
+    }
+    
+    void Start()
+    {
+        SetBoard(Board.Instance);
         gameObject.SetActive(false);
         nextFragmentButtonSprite = this.gameObject.GetComponent<SpriteRenderer>();
     }

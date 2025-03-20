@@ -7,7 +7,7 @@ public class BoardBackground : MonoBehaviour
 
     private void Start()
     {
-        _board = GameManager.Board;
+        _board = Board.Instance;
     }
     
     private void LateUpdate()

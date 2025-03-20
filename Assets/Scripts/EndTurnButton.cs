@@ -11,9 +11,14 @@ public class EndTurnButton : Button
         Square.FinishMove(selectedSquare.GetPiece(), selectedSquare);
     }
 
-    void Start()
+    void Awake()
     {
         Instance = this;
+    }
+
+    void Start()
+    {
+        SetBoard(Board.Instance);
         gameObject.SetActive(false);
     }
     

@@ -21,7 +21,7 @@ public class Board : MonoBehaviour
 
 	public List<Square> cycleSquares = new List<Square> { };
 
-    private static float _squareSize = 2f;
+    private float _squareSize = 2f;
     
     public enum RelativeSide
     {
@@ -38,12 +38,6 @@ public class Board : MonoBehaviour
     private void Start()
     {
         GameManager.Board = this;
-        TemplatePiece.Instance.SetBoard(this);
-        TemplateSquare.Instance.SetBoard(this);
-        EndTurnButton.Instance.SetBoard(this);
-        NextFragmentButton.Instance.SetBoard(this);
-        CycleButton.Instance.SetBoard(this);
-        SplitButton.Instance.SetBoard(this);
         
         CheckBoardDimensions();
         
