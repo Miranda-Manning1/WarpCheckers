@@ -29,7 +29,7 @@ public class GameManager : MonoBehaviour
 	public Color[] teamColors = new[] { Color.white, Color.cyan };
 
     public Board board;
-    public GameState savedGameState;
+    //public GameState savedGameState;
     
     private void Awake()
     {
@@ -70,8 +70,8 @@ public class GameManager : MonoBehaviour
             // save the current state of the board
             if (Input.GetKeyDown(KeyCode.S))
             {
-                savedGameState = new GameState();
-                savedGameState.SaveState(board);
+                //savedGameState = new GameState();
+                //savedGameState.SaveState(board);
             }
         }
 
