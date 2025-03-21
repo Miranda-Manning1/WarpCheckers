@@ -130,7 +130,6 @@ GameObject:
   - component: {fileID: 512018584}
   - component: {fileID: 512018587}
   - component: {fileID: 512018586}
-  - component: {fileID: 512018585}
   - component: {fileID: 512018588}
   m_Layer: 0
   m_Name: SplitButton
@@ -148,25 +147,13 @@ Transform:
   m_GameObject: {fileID: 512018583}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -11.79, y: -2, z: 0}
+  m_LocalPosition: {x: -11.79, y: 0, z: 0}
   m_LocalScale: {x: 0.45716077, y: 0.45716077, z: 0.45076054}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1139937749}
   m_Father: {fileID: 1069392533}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &512018585
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 512018583}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4734c2677124546a1a2bf527b93d1776, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!61 &512018586
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -280,6 +267,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1ccc30eb47863e84e927c95ca129d6a8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  splitButtonSprite: {fileID: 0}
+  altSprite: {fileID: 0}
+  splitEnabled: 0
+  piece: {fileID: 0}
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -573,7 +564,7 @@ Transform:
   m_GameObject: {fileID: 772723094}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -11.79, y: -2, z: 0}
+  m_LocalPosition: {x: -11.79, y: 4, z: 0}
   m_LocalScale: {x: 0.45716077, y: 0.45716077, z: 0.45076054}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -693,6 +684,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4734c2677124546a1a2bf527b93d1776, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  cycleButtonSprite: {fileID: 0}
+  altSprite: {fileID: 0}
+  cycleEnabled: 0
+  queen: {fileID: 0}
 --- !u!1 &824678382
 GameObject:
   m_ObjectHideFlags: 0
@@ -1064,6 +1059,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7f560129d3d8d9b4eb6ddcb55a5b3ceb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  clickedOnSquare: 0
+  playerTurn: 0
+  boardFlipped: 0
+  chainCaptureRunning: 0
+  cycleRunning: 0
+  splitRunning: 0
+  developerMode: 0
+  flipBoard: 1
+  backwardTeam: 1
+  teamColors:
+  - {r: 1, g: 1, b: 1, a: 1}
+  - {r: 0, g: 1, b: 1, a: 1}
+  board: {fileID: 0}
 --- !u!4 &1069392533
 Transform:
   m_ObjectHideFlags: 0
@@ -1288,7 +1296,7 @@ Transform:
   m_GameObject: {fileID: 1366374230}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -11.79, y: 2, z: 0}
+  m_LocalPosition: {x: -11.79, y: -4, z: 0}
   m_LocalScale: {x: 0.45716077, y: 0.45716077, z: 0.45076054}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1622,8 +1630,6 @@ MonoBehaviour:
   team: 0
   pieceType: 0
   directionless: 0
-  canSwap: 0
-  canCycle: 0
   spriteRenderer: {fileID: 0}
 --- !u!4 &1788631420
 Transform:
@@ -1659,8 +1665,6 @@ MonoBehaviour:
   team: 0
   pieceType: 1
   directionless: 0
-  canSwap: 0
-  canCycle: 0
   spriteRenderer: {fileID: 0}
 --- !u!212 &1788631423
 SpriteRenderer:
@@ -1745,7 +1749,7 @@ Transform:
   m_GameObject: {fileID: 1908228477}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -11.79, y: 2, z: 0}
+  m_LocalPosition: {x: -11.79, y: 4, z: 0}
   m_LocalScale: {x: 0.45716077, y: 0.45716077, z: 0.45076054}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1893,10 +1897,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d2f35ddca5314624ba997c1795b5aff5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  templateSquare: {fileID: 0}
+  templatePiece: {fileID: 0}
   boardLength: {x: 8, y: 8}
+  checkerRowsPerSide: 3
   selectedSquare: {fileID: 0}
+  pieceCount: 0
   squaresTraveledThisTurn: []
   cycleSquares: []
+  squareSize: 2
 --- !u!4 &2002532165
 Transform:
   m_ObjectHideFlags: 0

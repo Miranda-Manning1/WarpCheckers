@@ -11,6 +11,8 @@ public class Square : MonoBehaviour
     
     protected Board _board;
     protected GameManager _gameManager;
+    protected CycleButton _cycleButton;
+    protected SplitButton _splitButton;
 
     
     private Piece _occupant;
@@ -21,6 +23,14 @@ public class Square : MonoBehaviour
     {
         _gameManager = GameManager.Instance;
         _board = Board.Instance;
+        _cycleButton = CycleButton.Instance;
+        _splitButton = SplitButton.Instance;
+
+        if (this == TemplateSquare.Instance)
+        {
+            originalColor = Color.black;
+            spriteRenderer = GetComponent<SpriteRenderer>();
+        }
     }
 
     /*
@@ -33,10 +43,17 @@ public class Square : MonoBehaviour
         _board.selectedSquare = this;
         
         // if queen selected, enable cycle button
-        if (this.GetPiece().canCycle && !_gameManager.ChainCaptureRunning())
+        if (this.GetPiece().CanCycle() && !_gameManager.ChainCaptureRunning() && !_gameManager.SplitRunning())
         {
-            CycleButton.SetCycleEnabled(_board,false);
+            _cycleButton.SetCycleEnabled(_board,false);
             _gameManager.SetCycleButtonEnabled(true);
+        }
+        
+        // if king or queen selected, enable split button
+        if (this.GetPiece().CanSplit() && !_gameManager.ChainCaptureRunning() && !_gameManager.CycleRunning())
+        {
+            _splitButton.SetSplitEnabled(_board, false);
+            _gameManager.SetSplitButtonEnabled(true);
         }
     }
 
@@ -49,9 +66,14 @@ public class Square : MonoBehaviour
         SetHighlighted(this, false);
         
         // when a piece is deselected, make sure cycle button is turned off
-        CycleButton.SetCycleEnabled(_board, false);
+        _cycleButton.SetCycleEnabled(_board, false);
         _gameManager.SetCycleButtonEnabled(false);
-        
+
+        if (!_gameManager.SplitRunning())
+        {
+            _splitButton.SetSplitEnabled(_board, false);
+            _gameManager.SetSplitButtonEnabled(false);
+        }
     }
 
     private void OnMouseOver()

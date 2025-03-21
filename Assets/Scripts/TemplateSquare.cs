@@ -10,14 +10,4 @@ public class TemplateSquare : Square
     {
         Instance = this;
     }
-
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    private void Start()
-    {
-        SetBoard(Board.Instance);
-        _gameManager = GameManager.Instance;
-        
-        originalColor = Color.black;
-        spriteRenderer = GetComponent<SpriteRenderer>();
-    }
 }

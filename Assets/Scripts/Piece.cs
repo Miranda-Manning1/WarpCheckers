@@ -9,6 +9,8 @@ public class Piece : MonoBehaviour
 {
 	protected Board _board;
 	protected GameManager _gameManager;
+	protected CycleButton _cycleButton;
+	protected SplitButton _splitButton;
 	
     public SpriteRenderer pieceSprite;
     public SpriteRenderer extraSprite;
@@ -31,8 +33,6 @@ public class Piece : MonoBehaviour
     
     public PieceType pieceType;
     public bool directionless = false;
-    public bool canSwap = false;
-    public bool canCycle = false;
     
     public SpriteRenderer spriteRenderer;
     
@@ -49,6 +49,8 @@ public class Piece : MonoBehaviour
 	void Start()
 	{
 		_gameManager = GameManager.Instance;
+		_cycleButton = CycleButton.Instance;
+		_splitButton = SplitButton.Instance;
 	}
 
     private void SetSquare(Square squareToSet)
@@ -151,7 +153,7 @@ public class Piece : MonoBehaviour
         bool moveSuccessful = false; // did a move, and therefore a turn, finish after this click
         bool avoidEndingTurn = false; // regardless of whether a move was finished this click, should the end of the turn be avoided
 		bool captureThisClick = false; // did this piece capture an enemy piece in this click?
-		bool cycleEnabled = CycleButton.CycleEnabled();
+		bool cycleEnabled = _cycleButton.CycleEnabled();
 
         // failsafe: if no piece currently selected, or if already-selected square is clicked, end attempted movement
         if (!board.SquareSelected() || originalSquare == destinationSquare) return false;
@@ -260,8 +262,6 @@ public class Piece : MonoBehaviour
 		// set to Checker
 		if (newPieceType == PieceType.Checker) {
 			directionless = false;
-			canSwap = false;
-			canCycle = false;
 			extraSprite.enabled = false;
 			return;
 		}
@@ -269,7 +269,6 @@ public class Piece : MonoBehaviour
 		// set to King
 		if (newPieceType == PieceType.King) {
         	directionless = true;
-        	canSwap = true;
 			extraSprite.sprite = _kingSprite;
 			extraSprite.color = Color.red;
         	extraSprite.enabled = true;
@@ -279,8 +278,6 @@ public class Piece : MonoBehaviour
 		// set to Queen
 		if (newPieceType == PieceType.Queen) {
 			directionless = true;
-			canSwap = true;
-			canCycle = true;
 			extraSprite.sprite = _queenSprite;
 			extraSprite.color = Color.red;
 			extraSprite.enabled = true;
@@ -354,7 +351,7 @@ public class Piece : MonoBehaviour
      */
     private bool AttemptSwap(Square thisPieceSquare, Square otherPieceSquare)
     {
-        if (!canSwap) return false;
+        if (!CanSwap()) return false;
         if (!otherPieceSquare.IsOccupied()) return false;
         if (!Square.IsOrthogonallyAdjacent(thisPieceSquare, otherPieceSquare)) return false;
         
@@ -736,5 +733,28 @@ public class Piece : MonoBehaviour
     public Board GetBoard()
     {
 	    return _board;
+    }
+    
+    /*
+     * return the square's GameManager
+     */
+    public GameManager GetGameManager()
+    {
+	    return _gameManager;
+    }
+
+    public bool CanSwap()
+    {
+	    return pieceType == PieceType.King || pieceType == PieceType.Queen;
+    }
+
+    public bool CanSplit()
+    {
+	    return pieceType == PieceType.King || pieceType == PieceType.Queen;
+    }
+
+    public bool CanCycle()
+    {
+	    return pieceType == PieceType.Queen;
     }
 }

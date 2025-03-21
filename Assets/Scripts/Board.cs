@@ -10,19 +10,22 @@ public class Board : MonoBehaviour
 
     public static Board Instance;
     private GameManager _gameManager;
+    
+    public TemplateSquare templateSquare;
+    public TemplatePiece templatePiece;
 
     public Vector2Int boardLength = new Vector2Int(8, 8);
-    private int _checkerRowsPerSide = 3;
+    public int checkerRowsPerSide = 3;
     public Square[,] Squares;
     public Square selectedSquare;
-    private int _pieceCount = 0;
+    public int pieceCount = 0;
 
 	public List<Square>[] lastSquaresMoved = new List<Square>[2];
 	public List<Square> squaresTraveledThisTurn = new List<Square> { };
 
 	public List<Square> cycleSquares = new List<Square> { };
 
-    private float _squareSize = 2f;
+    public float squareSize = 2f;
     
     public enum RelativeSide
     {
@@ -40,13 +43,16 @@ public class Board : MonoBehaviour
     {
         _gameManager = GameManager.Instance;
         _gameManager.board = this;
+        templateSquare = TemplateSquare.Instance;
+        templatePiece = TemplatePiece.Instance;
+        
         
         CheckBoardDimensions();
         
         // partially help square size stay small enough - will likely need a rework later
-        if (_squareSize * boardLength.y * 31.5f > Screen.height)
+        if (squareSize * boardLength.y * 31.5f > Screen.height)
         {
-            _squareSize = (Screen.height / (float) boardLength.y) / 31.5f;
+            squareSize = (Screen.height / (float) boardLength.y) / 31.5f;
         }
         
 		List<Square> team0LastSquaresMoved = new List<Square> { };
@@ -66,10 +72,10 @@ public class Board : MonoBehaviour
     private void CheckBoardDimensions()
     {
         if (boardLength.x < 0 || boardLength.y < 0) boardLength = new Vector2Int(0, 0);
-        if (_checkerRowsPerSide < 0) _checkerRowsPerSide = 0;
+        if (checkerRowsPerSide < 0) checkerRowsPerSide = 0;
         
         int calculatedCheckerRowsPerSide = (boardLength.y - 1) / 2;
-        if (calculatedCheckerRowsPerSide < _checkerRowsPerSide) _checkerRowsPerSide = calculatedCheckerRowsPerSide;
+        if (calculatedCheckerRowsPerSide < checkerRowsPerSide) checkerRowsPerSide = calculatedCheckerRowsPerSide;
     }
 
     /*
@@ -87,8 +93,8 @@ public class Board : MonoBehaviour
         Square templateSquare = TemplateSquare.Instance;
 
         // prime the size/location of the initial square
-        float firstSquareX = transform.position.x - ((boardLength.x / 2f) * _squareSize) + (_squareSize / 2);
-        float firstSquareY = transform.position.y - ((boardLength.y / 2f) * _squareSize) + (_squareSize / 2);
+        float firstSquareX = transform.position.x - ((boardLength.x / 2f) * squareSize) + (squareSize / 2);
+        float firstSquareY = transform.position.y - ((boardLength.y / 2f) * squareSize) + (squareSize / 2);
         Vector2 firstSquare = new Vector2(firstSquareX, firstSquareY);
 
         // create the grid of squares
@@ -114,10 +120,10 @@ public class Board : MonoBehaviour
                 square.spriteRenderer.sortingOrder = 0;
 
                 // set square location
-                float xPosition = firstSquare.x + (x * _squareSize);
-                float yPosition = firstSquare.y + (y * _squareSize);
+                float xPosition = firstSquare.x + (x * squareSize);
+                float yPosition = firstSquare.y + (y * squareSize);
                 square.transform.localPosition = new Vector3(xPosition, yPosition, 0);
-                square.transform.localScale = new Vector3(_squareSize, _squareSize, square.transform.localScale.z);
+                square.transform.localScale = new Vector3(squareSize, squareSize, square.transform.localScale.z);
 
 
                 square.coordinates = new Vector2Int(x, y);
@@ -138,10 +144,10 @@ public class Board : MonoBehaviour
     public void CreateChecker(Square square, int team, Piece.PieceType pieceType)
     {
         // create piece and set fields
-        Piece piece = new GameObject("Piece" + this._pieceCount).AddComponent<Piece>();
+        Piece piece = new GameObject("Piece" + this.pieceCount).AddComponent<Piece>();
         square.SetPiece(piece);
         piece.transform.position = square.transform.position;
-        piece.transform.localScale = new Vector3(_squareSize / 2f, _squareSize / 2f, piece.transform.localScale.z);
+        piece.transform.localScale = new Vector3(squareSize / 2f, squareSize / 2f, piece.transform.localScale.z);
         piece.square = square;
         piece.team = team;
         piece.transform.SetParent(piece.square.transform);
@@ -167,7 +173,8 @@ public class Board : MonoBehaviour
         piece.pieceSprite.color = _gameManager.teamColors[team];
         
         piece.SetPieceType(pieceType);
-        _pieceCount++;
+        
+        pieceCount++;
     }
 
     /*
@@ -175,15 +182,15 @@ public class Board : MonoBehaviour
      */
     private void CreateCheckers()
     {
-        if (_checkerRowsPerSide == 0) return;
+        if (checkerRowsPerSide == 0) return;
         
         Piece templatePiece = TemplatePiece.Instance;
 
         // Y position of the bottom-left-most checker on teams 0 and 1 respectively
-        int[] startY = { 0, boardLength.y - _checkerRowsPerSide };
+        int[] startY = { 0, boardLength.y - checkerRowsPerSide };
 
         // ending Y position for the checkers being created on teams 0 and 1 respectively
-        int[] endY = { _checkerRowsPerSide, boardLength.y };
+        int[] endY = { checkerRowsPerSide, boardLength.y };
 
         // create two teams of checkers
         for (int t = 0; t < 2; t++)

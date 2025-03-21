@@ -11,22 +11,25 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance;
     private EndTurnButton _endTurnButton;
     private CycleButton _cycleButton;
+    private SplitButton _splitButton;
+    private NextFragmentButton _nextFragmentButton;
     
     public bool clickedOnSquare = false;
 
-    private int _playerTurn = 0;
-    private bool _boardFlipped = false;
-    private bool _chainCaptureRunning = false;
-	private bool _cycleRunning = false;
+    public int playerTurn = 0;
+    public bool boardFlipped = false;
+    public bool chainCaptureRunning = false;
+    public bool cycleRunning = false;
+    public bool splitRunning = false;
 
     public bool developerMode = false;
-    private bool _flipBoard = true;
+    public bool flipBoard = true;
     public int backwardTeam = 1;
     
 	public Color[] teamColors = new[] { Color.white, Color.cyan };
 
     public Board board;
-    public Board previousBoard;
+    public GameState savedGameState;
     
     private void Awake()
     {
@@ -40,22 +43,38 @@ public class GameManager : MonoBehaviour
         _boardFlipMarker = gameObject.transform.GetChild(1).GetComponent<SpriteRenderer>();
         _endTurnButton = gameObject.transform.GetChild(2).GetComponent<EndTurnButton>();
         _cycleButton = gameObject.transform.GetChild(3).GetComponent<CycleButton>();
+        _splitButton = gameObject.transform.GetChild(4).GetComponent<SplitButton>();
+        _nextFragmentButton = gameObject.transform.GetChild(5).GetComponent<NextFragmentButton>();
     }
 
     // Update is called once per frame
     private void Update()
     {
+        // enable dev mode
         if (Input.GetKeyDown(KeyCode.D))
         {
             developerMode = !developerMode;
             _devModeMarker.enabled = developerMode;
         }
 
-        if (developerMode && Input.GetKeyDown(KeyCode.F))
+        // dev mode features
+        if (developerMode)
         {
-            _flipBoard = !_flipBoard;
-            _boardFlipMarker.enabled = !_flipBoard;
+            // toggle board flipping
+            if (Input.GetKeyDown(KeyCode.F))
+            {
+                flipBoard = !flipBoard;
+                _boardFlipMarker.enabled = !flipBoard;
+            }
+
+            // save the current state of the board
+            if (Input.GetKeyDown(KeyCode.S))
+            {
+                savedGameState = new GameState();
+                savedGameState.SaveState(board);
+            }
         }
+
     }
 
 	public void SetEndTurnButtonEnabled(bool enabled) {
@@ -65,6 +84,11 @@ public class GameManager : MonoBehaviour
 	public void SetCycleButtonEnabled(bool enabled) {
 		_cycleButton.gameObject.SetActive(enabled);
 	}
+
+    public void SetSplitButtonEnabled(bool enabled)
+    {
+        _splitButton.gameObject.SetActive(enabled);
+    }
 
 	public static int GetOppositeTeam(int currentTurn) {
     	return currentTurn switch
@@ -80,20 +104,22 @@ public class GameManager : MonoBehaviour
      */
     public void SwitchPlayerTurn()
     {
-        int oldTurn = _playerTurn;
-		_playerTurn = GetOppositeTeam(_playerTurn);
+        int oldTurn = playerTurn;
+		playerTurn = GetOppositeTeam(playerTurn);
 
 		// highlight the squares the opponent moved on, while un-highlighting the new turn's squares
         board.lastSquaresMoved[oldTurn] = board.squaresTraveledThisTurn;
-		Square.SetAllHighlighted(board.lastSquaresMoved[_playerTurn], false);
+		Square.SetAllHighlighted(board.lastSquaresMoved[playerTurn], false);
 		Square.SetAllHighlighted(board.lastSquaresMoved[oldTurn], true);
 		board.squaresTraveledThisTurn = new List<Square> { };
+        
+        _splitButton.SetSplitEnabled(board, false);
 
         // don't flip the board if space bar is held in dev mode
-        if (developerMode && !_flipBoard) return;
+        if (developerMode && !flipBoard) return;
         
-        _boardFlipped = !_boardFlipped;
-        backwardTeam = GetOppositeTeam(_playerTurn);
+        boardFlipped = !boardFlipped;
+        backwardTeam = GetOppositeTeam(playerTurn);
         board.FlipBoard();
     }
 
@@ -102,7 +128,7 @@ public class GameManager : MonoBehaviour
      */
     public int CurrentPlayerTurn()
     {
-        return _playerTurn;
+        return playerTurn;
     }
     
     /*
@@ -110,7 +136,7 @@ public class GameManager : MonoBehaviour
      */
     public bool IsBoardFlipped()
     {
-        return _boardFlipped;
+        return boardFlipped;
     }
     
     /*
@@ -119,12 +145,12 @@ public class GameManager : MonoBehaviour
      */
     public bool ChainCaptureRunning()
     {
-        return _chainCaptureRunning;
+        return chainCaptureRunning;
     }
     
     public void SetChainCaptureRunning(bool isRunning)
     {
-        _chainCaptureRunning = isRunning;
+        chainCaptureRunning = isRunning;
     }
 
     /*
@@ -132,11 +158,36 @@ public class GameManager : MonoBehaviour
      */
     public bool CycleRunning()
     {
-        return _cycleRunning;
+        return cycleRunning;
     }
     
     public void SetCycleRunning(bool isRunning)
     {
-        _cycleRunning = isRunning;
+        cycleRunning = isRunning;
+    }
+
+    public bool SplitRunning()
+    {
+        return splitRunning;
+    }
+    
+    public void SetSplitRunning(bool isRunning)
+    {
+        splitRunning = isRunning;
+    }
+
+    public CycleButton GetCycleButton()
+    {
+        return _cycleButton;
+    }
+
+    public SplitButton GetSplitButton()
+    {
+        return _splitButton;
+    }
+
+    public NextFragmentButton GetNextFragmentButton()
+    {
+        return _nextFragmentButton;
     }
 }

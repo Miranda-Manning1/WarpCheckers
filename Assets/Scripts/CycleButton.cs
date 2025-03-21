@@ -4,17 +4,27 @@ public class CycleButton : Button
 {
 	public static CycleButton Instance;
 	
-	private static SpriteRenderer cycleButtonSprite;
-	private static SpriteRenderer altSprite;
+	public SpriteRenderer cycleButtonSprite;
+	public SpriteRenderer altSprite;
 
-	private static bool cycleEnabled = false;
+	public bool cycleEnabled = false;
 
-	public static Piece Queen;
+	public Piece queen;
 
 	void OnMouseUp()
 	{
 		_gameManager.clickedOnSquare = true;
 		SetCycleEnabled(_board, !cycleEnabled);
+
+		if (cycleEnabled)
+		{
+			_gameManager.SetSplitButtonEnabled(false);
+			_gameManager.GetSplitButton().SetSplitEnabled(_gameManager.board, false);
+		}
+		else
+		{
+			_gameManager.SetSplitButtonEnabled(true);
+		}
 	}
 
 	void Awake()
@@ -35,7 +45,7 @@ public class CycleButton : Button
 	/*
 	 * set whether cycling is active or not
 	 */
-	public static void SetCycleEnabled(Board board, bool enabled)
+	public void SetCycleEnabled(Board board, bool enabled)
 	{
 		// switch button sprite if enabled status changes
 		if (cycleEnabled != enabled)
@@ -44,10 +54,10 @@ public class CycleButton : Button
 		cycleEnabled = enabled;
 
 		if (cycleEnabled) {
-			Queen = board.selectedSquare.GetPiece();
-			board.cycleSquares.Add(Queen.square);
+			queen = board.selectedSquare.GetPiece();
+			board.cycleSquares.Add(queen.square);
 		} else {
-			Queen = null;
+			queen = null;
 			board.cycleSquares.Clear();
 		}
 	}
@@ -55,7 +65,7 @@ public class CycleButton : Button
 	/*
 	 * return whether cycling is active or not
 	 */
-	public static bool CycleEnabled()
+	public bool CycleEnabled()
 	{
 		return cycleEnabled;
 	}
